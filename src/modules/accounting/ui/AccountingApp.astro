@@ -1,0 +1,41 @@
+---
+import './accounting.css';
+import UploadStep from './UploadStep.astro';
+import MappingStep from './MappingStep.astro';
+import ProcessingStep from './ProcessingStep.astro';
+import ResultsStep from './ResultsStep.astro';
+
+const steps = [
+  { id: 'upload', label: 'Cargar' },
+  { id: 'mapping', label: 'Mapear' },
+  { id: 'results', label: 'Resultados' },
+];
+---
+
+<div class="acct" data-accounting>
+  <div class="container">
+    <div class="acct-top">
+      <span class="acct-badge">Panel administrativo · Demo</span>
+      <div class="acct-steps">
+        <ol class="acct-steps__list" aria-label="Progreso">
+        {
+          steps.map((step, index) => (
+            <li class="acct-steps__item" data-step-dot={step.id} aria-current={index === 0 ? 'step' : undefined}>
+              <span class="acct-steps__n" aria-hidden="true">{index + 1}</span>
+              <span class="acct-steps__label">{step.label}</span>
+            </li>
+          ))
+        }
+        </ol>
+        <span class="acct-steps__track" aria-hidden="true"><span class="acct-steps__fill" data-progress></span></span>
+      </div>
+    </div>
+
+    <p class="sr-only" role="status" aria-live="polite" data-acct-live></p>
+
+    <UploadStep />
+    <MappingStep />
+    <ProcessingStep />
+    <ResultsStep />
+  </div>
+</div>

@@ -1,0 +1,136 @@
+---
+import Icon from '../../../shared/ui/Icon.astro';
+import { METHOD_INFO } from '../domain/accounting-methods';
+
+const methods = (['accrual', 'cash'] as const).map((id) => ({ id, ...METHOD_INFO[id] }));
+const taxModes = [
+  { id: 'included', label: 'IVA incluido' },
+  { id: 'excluded', label: 'IVA aparte' },
+  { id: 'none', label: 'No aplica' },
+] as const;
+---
+
+<section class="acct-step" data-step="mapping" aria-labelledby="acct-map-title" hidden>
+  <header class="acct-step__head">
+    <p class="eyebrow eyebrow--coral">Paso 2 de 3</p>
+    <h2 id="acct-map-title" tabindex="-1">Así leímos <em>tu archivo</em></h2>
+  </header>
+
+  <div class="acct-card acct-file">
+    <div class="acct-file__main">
+      <span class="acct-file__name">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9l5 5v11H5z" /><path d="M14 4v5h5" /></svg>
+        <span data-file-name></span>
+      </span>
+      <div class="acct-file__facts">
+        <span data-sheet-fact>Hoja <strong data-sheet-name></strong></span>
+        <span data-header-fact></span>
+        <span class="acct-profile-badge" data-profile-badge></span>
+      </div>
+    </div>
+    <div class="acct-file__row">
+      <label class="field" data-sheet-field hidden>
+        <span class="field__label">Hoja del archivo</span>
+        <select class="select acct-select" data-sheet-select data-demo="sheet-select"></select>
+      </label>
+      <label class="field">
+        <span class="field__label">Formato guardado</span>
+        <select class="select acct-select" data-profile-select data-demo="profile-select"></select>
+      </label>
+    </div>
+  </div>
+
+  <div class="acct-map-grid">
+    <section class="acct-card" aria-labelledby="acct-cols-title">
+      <div class="acct-card__head">
+        <h3 id="acct-cols-title">Columnas</h3>
+        <p class="muted">Elige de qué columna sale cada dato.</p>
+      </div>
+      <div class="acct-fields" data-mapping-list></div>
+    </section>
+
+    <aside class="acct-side" aria-label="Opciones de cálculo">
+      <div class="acct-card acct-side__card">
+        <div class="acct-block">
+          <h3 class="acct-label" id="acct-method-label">Método contable</h3>
+          <div class="acct-method-cards" role="radiogroup" aria-labelledby="acct-method-label" data-method-cards>
+            {
+              methods.map((method, index) => (
+                <button
+                  type="button"
+                  class="acct-method"
+                  role="radio"
+                  aria-checked={index === 0 ? 'true' : 'false'}
+                  data-method={method.id}
+                  data-demo={`pick-${method.id}`}
+                >
+                  <span class="acct-method__title">{method.label}</span>
+                  <span class="acct-method__text">{method.tagline}</span>
+                  <span class="acct-method__tick" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7.500" /></svg>
+                  </span>
+                </button>
+              ))
+            }
+            <span class="acct-method__ring" data-indicator aria-hidden="true"></span>
+          </div>
+          <p class="muted" data-method-detail style="font-size: var(--text-sm)"></p>
+        </div>
+
+        <div class="acct-block">
+          <h3 class="acct-label" id="acct-tax-label">IVA</h3>
+          <div class="acct-tax">
+            <div class="acct-seg" role="radiogroup" aria-labelledby="acct-tax-label" data-tax-group>
+              {
+                taxModes.map((mode, index) => (
+                  <button
+                    type="button"
+                    class="chip"
+                    role="radio"
+                    aria-checked={index === 0 ? 'true' : 'false'}
+                    data-tax={mode.id}
+                    data-demo={`tax-${mode.id}`}
+                  >
+                    <span class="chip__label">{mode.label}</span>
+                  </button>
+                ))
+              }
+              <span class="chip__indicator" data-indicator aria-hidden="true"></span>
+            </div>
+            <label class="acct-rate" data-rate-wrap>
+              Tarifa
+              <input class="input" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="19" data-tax-rate />
+              %
+            </label>
+          </div>
+        </div>
+
+        <div class="acct-block acct-profile-save">
+          <h3 class="acct-label">Guardar este formato</h3>
+          <div class="acct-profile-save__row">
+            <input class="input" type="text" maxlength="40" placeholder="Nombre, p. ej. Libro de la contadora" aria-label="Nombre del perfil" data-profile-name data-demo="profile-name" />
+            <button type="button" class="btn btn--ghost btn--sm" data-save-profile data-demo="save-profile">Guardar como perfil</button>
+          </div>
+          <p class="acct-feedback" role="status" data-profile-feedback></p>
+        </div>
+
+        <div class="acct-cta">
+          <button type="button" class="btn" data-confirm data-demo="confirm-mapping">
+            Procesar ingresos <Icon name="arrow-right" />
+          </button>
+          <p class="acct-hint" role="status" data-missing hidden></p>
+          <button type="button" class="link acct-back" data-back data-demo="back-upload">Elegir otro archivo</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="acct-card" aria-labelledby="acct-preview-title">
+    <div class="acct-card__head">
+      <h3 id="acct-preview-title">Vista previa</h3>
+      <p class="muted">Las primeras filas, tal como quedarían.</p>
+    </div>
+    <div data-preview aria-live="polite"></div>
+    <div class="acct-preview__stats" data-preview-stats></div>
+  </section>
+</section>

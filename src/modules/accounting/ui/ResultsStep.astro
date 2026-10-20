@@ -1,0 +1,175 @@
+---
+import { METHOD_INFO } from '../domain/accounting-methods';
+
+const kpis = [
+  { id: 'gross', label: 'Ingresos brutos', format: 'cop', lead: true },
+  { id: 'net', label: 'Ingresos netos', format: 'cop' },
+  { id: 'tax', label: 'IVA generado', format: 'cop' },
+  { id: 'receivables', label: 'Cuentas por cobrar', format: 'cop' },
+  { id: 'count', label: 'Ventas', format: 'int' },
+  { id: 'averageTicket', label: 'Ticket promedio', format: 'cop' },
+] as const;
+
+const methods = (['accrual', 'cash'] as const).map((id) => ({ id, label: METHOD_INFO[id].label }));
+const breakdowns = [
+  { id: 'channel', title: 'Por canal' },
+  { id: 'category', title: 'Por categoría' },
+  { id: 'payment', title: 'Por medio de pago' },
+] as const;
+---
+
+<section class="acct-step" data-step="results" aria-labelledby="acct-res-title" hidden>
+  <header class="acct-res-head">
+    <div>
+      <p class="eyebrow eyebrow--coral">Paso 3 de 3</p>
+      <h2 id="acct-res-title" tabindex="-1">Tu libro de <em>ingresos</em></h2>
+      <p class="muted acct-res-head__caption" data-res-caption></p>
+    </div>
+    <button type="button" class="btn btn--ghost btn--sm" data-reset data-demo="reset">Cargar otro archivo</button>
+  </header>
+
+  <div class="acct-card acct-method-switch">
+    <div>
+      <p class="eyebrow">El mismo archivo, otro método contable</p>
+      <p class="acct-method-switch__text" data-method-text></p>
+    </div>
+    <div class="acct-seg acct-seg--lg" role="radiogroup" aria-label="Método contable" data-method-switch>
+      {
+        methods.map((method, index) => (
+          <button
+            type="button"
+            class="chip"
+            role="radio"
+            aria-checked={index === 0 ? 'true' : 'false'}
+            data-method={method.id}
+            data-demo={`method-${method.id}`}
+          >
+            <span class="chip__label">{method.label}</span>
+          </button>
+        ))
+      }
+      <span class="chip__indicator" data-indicator aria-hidden="true"></span>
+    </div>
+    <p class="acct-method-switch__compare" data-compare></p>
+  </div>
+
+  <div class="acct-kpis" data-kpis>
+    {
+      kpis.map((kpi, index) => (
+        <article class:list={['acct-kpi', { 'acct-kpi--lead': 'lead' in kpi }]} style={`--i:${index}`}>
+          <p class="acct-kpi__label">{kpi.label}</p>
+          <p class="acct-kpi__value" data-kpi={kpi.id} data-format={kpi.format} data-demo={`kpi-${kpi.id}`}>
+            0
+          </p>
+          <p class="acct-kpi__foot">
+            <span class="acct-delta" data-delta={kpi.id} hidden></span>
+            <span data-kpi-note={kpi.id}></span>
+          </p>
+        </article>
+      ))
+    }
+  </div>
+
+  <section class="acct-card" aria-labelledby="acct-chart-title">
+    <div class="acct-card__head">
+      <h3 id="acct-chart-title">Ingresos por mes</h3>
+      <p class="muted" data-chart-sub></p>
+    </div>
+    <figure class="acct-chart__figure" data-chart>
+      <div data-chart-canvas></div>
+      <div class="acct-tip" data-chart-tip aria-hidden="true"></div>
+      <div data-chart-table></div>
+    </figure>
+  </section>
+
+  <div class="acct-trio">
+    {
+      breakdowns.map((group) => (
+        <section class="acct-card" aria-labelledby={`acct-bd-${group.id}`}>
+          <div class="acct-card__head">
+            <h3 id={`acct-bd-${group.id}`}>{group.title}</h3>
+          </div>
+          <ul class="acct-bd" data-breakdown={group.id}></ul>
+        </section>
+      ))
+    }
+  </div>
+
+  <section class="acct-card acct-quality" aria-labelledby="acct-quality-title" data-demo="quality">
+    <div class="acct-card__head">
+      <h3 id="acct-quality-title">Calidad de los datos</h3>
+      <span class="acct-quality__badge" data-quality-badge></span>
+    </div>
+    <div data-quality-body></div>
+  </section>
+
+  <section class="acct-card" data-tabs="acct-results" aria-label="Detalle de ingresos y asientos">
+    <div class="acct-tabs-head">
+      <div class="acct-seg" role="tablist" aria-label="Detalle">
+        <button
+          type="button"
+          class="chip"
+          role="tab"
+          id="acct-tab-movements"
+          aria-controls="acct-panel-movements"
+          aria-selected="true"
+          data-demo="tab-movements"
+        >
+          <span class="chip__label">Movimientos</span>
+        </button>
+        <button
+          type="button"
+          class="chip"
+          role="tab"
+          id="acct-tab-journal"
+          aria-controls="acct-panel-journal"
+          aria-selected="false"
+          data-demo="tab-journal"
+        >
+          <span class="chip__label">Asientos contables</span>
+        </button>
+        <span class="chip__indicator" data-indicator aria-hidden="true"></span>
+      </div>
+      <div class="acct-exports">
+        <button type="button" class="btn btn--ghost btn--sm" data-export="xlsx" data-demo="export-xlsx">Excel del libro de ingresos</button>
+        <button type="button" class="btn btn--ghost btn--sm" data-export="csv" data-demo="export-csv">CSV de asientos</button>
+      </div>
+    </div>
+
+    <div role="tabpanel" id="acct-panel-movements" aria-labelledby="acct-tab-movements">
+      <div class="acct-filters">
+        <label class="field">
+          <span class="field__label">Buscar</span>
+          <input class="input" type="search" placeholder="Cliente, factura o producto" autocomplete="off" data-search data-demo="search" />
+        </label>
+        <label class="field">
+          <span class="field__label">Canal</span>
+          <select class="select" data-channel-filter data-demo="channel-filter"></select>
+        </label>
+      </div>
+      <div data-movements-panel>
+        <div class="acct-table-wrap">
+          <table class="acct-table acct-table--stack">
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Documento</th><th>Detalle</th><th>Canal</th><th>Pago</th><th>Estado</th><th class="num">Total</th>
+              </tr>
+            </thead>
+            <tbody data-movements-body></tbody>
+          </table>
+        </div>
+        <p class="acct-empty" data-movements-empty hidden>No hay movimientos con esos filtros.</p>
+      </div>
+      <div class="acct-pager" data-movements-pager></div>
+    </div>
+
+    <div role="tabpanel" id="acct-panel-journal" aria-labelledby="acct-tab-journal" hidden>
+      <div class="acct-journal__summary" data-journal-summary></div>
+      <p class="acct-journal__note" data-journal-note></p>
+      <div class="acct-journal__list" data-journal-list></div>
+      <div class="acct-pager" data-journal-pager></div>
+    </div>
+  </section>
+
+  <p class="sr-only" role="status" aria-live="polite" data-results-live></p>
+</section>

@@ -1,0 +1,22 @@
+---
+const steps = ['Leyendo filas', 'Validando fechas y montos', 'Detectando duplicados', 'Generando asientos'];
+---
+
+<section class="acct-step" data-step="processing" aria-labelledby="acct-proc-title" hidden>
+  <div class="acct-card acct-proc">
+    <h2 id="acct-proc-title" tabindex="-1">Procesando <em>tus ingresos</em></h2>
+    <div class="acct-proc__bar" aria-hidden="true"><span data-proc-bar></span></div>
+    <ol class="acct-proc__steps" data-proc-steps>
+      {
+        steps.map((label) => (
+          <li class="acct-proc__step">
+            <span class="acct-proc__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path class="draw-check" pathLength="1" d="m5 12.500 4.500 4.500L19 7.500" /></svg>
+            </span>
+            <span>{label}</span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
