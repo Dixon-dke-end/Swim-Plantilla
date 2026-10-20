@@ -1,0 +1,309 @@
+---
+import { getImage } from 'astro:assets';
+import Icon from '../../../shared/ui/Icon.astro';
+import { products } from '../../catalog/data/products';
+
+/**
+ * Thumbnails are generated at build time and shipped as a tiny JSON lookup,
+ * because the cart lines are rendered on the client from localStorage.
+ */
+const catalog = await Promise.all(
+  products.map(async (product) => ({
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    colors: await Promise.all(
+      product.colors.map(async (color) => {
+        const thumb = await getImage({
+          src: color.image,
+          width: 200,
+          height: 260,
+          format: 'webp',
+          quality: 70,
+          position: 'top',
+          fit: 'cover',
+        });
+        return { name: color.name, image: thumb.src, alt: color.alt };
+      }),
+    ),
+  })),
+);
+
+const catalogJson = JSON.stringify(catalog).replace(/</g, '\\u003c');
+---
+
+<div class="cart" id="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" hidden inert transition:persist="cart-drawer">
+  <div class="cart__scrim" data-cart-close aria-hidden="true"></div>
+  <aside class="cart__panel">
+    <header class="cart__header">
+      <h2 class="cart__title" id="cart-title">
+        Tu bolsa{" "}<span class="muted" data-cart-heading-count></span>
+      </h2>
+      <button type="button" class="icon-btn" data-cart-close aria-label="Cerrar bolsa">
+        <Icon name="close" />
+      </button>
+    </header>
+
+    <div class="cart__scroll">
+      <div class="cart__empty" data-cart-empty>
+        <p class="cart__empty-title display">Tu bolsa está vacía</p>
+        <p class="muted">Cuando agregues una prenda, aparecerá aquí.</p>
+        <a class="btn" href="/coleccion" data-cart-close>Ver la colección</a>
+      </div>
+
+      <div data-cart-body hidden>
+        <div class="cart__shipping">
+          <p class="cart__shipping-message" data-cart-shipping-message aria-live="polite"></p>
+          <div class="cart__progress" data-cart-progress aria-hidden="true"><span></span></div>
+        </div>
+        <ul class="cart__lines" data-cart-lines aria-label="Productos en tu bolsa"></ul>
+      </div>
+    </div>
+
+    <footer class="cart__footer" data-cart-footer hidden>
+      <dl class="cart__totals">
+        <div>
+          <dt>Subtotal</dt>
+          <dd data-cart-subtotal></dd>
+        </div>
+        <div>
+          <dt>Envío</dt>
+          <dd data-cart-shipping></dd>
+        </div>
+        <div class="cart__totals-total">
+          <dt>Total</dt>
+          <dd data-cart-total></dd>
+        </div>
+      </dl>
+      <p class="cart__note" data-cart-note role="status" hidden>
+        Esta es una demostración: el pago todavía no está habilitado.
+      </p>
+      <button type="button" class="btn btn--block" data-cart-checkout>Finalizar compra</button>
+      <button type="button" class="link link--static cart__continue" data-cart-close>Seguir comprando</button>
+    </footer>
+  </aside>
+  <script type="application/json" id="cart-catalog" set:html={catalogJson}></script>
+</div>
+
+<style is:global>
+  .cart {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+  }
+
+  .cart__scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--scrim);
+    view-transition-name: cart-scrim;
+    view-transition-class: vt-scrim;
+  }
+
+  .cart__panel {
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 28rem);
+    background: var(--surface);
+    box-shadow: -24px 0 60px rgb(19 32 31 / 0.18);
+    view-transition-name: cart-panel;
+    view-transition-class: vt-drawer;
+  }
+
+  .cart__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1rem 1rem 1.5rem;
+    border-bottom: 1px solid var(--stone);
+  }
+
+  .cart__title {
+    font-size: var(--text-xl);
+  }
+
+  .cart__scroll {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 1.5rem;
+  }
+
+  .cart__empty {
+    display: grid;
+    justify-items: start;
+    gap: 1rem;
+    padding-block: 3rem;
+  }
+
+  .cart__empty-title {
+    font-size: var(--text-2xl);
+  }
+
+  .cart__shipping {
+    display: grid;
+    gap: 0.6rem;
+    padding-block: 1.25rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .cart__progress {
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--stone);
+    overflow: hidden;
+  }
+
+  .cart__progress > span {
+    display: block;
+    height: 100%;
+    background: var(--teal);
+    transform-origin: left;
+    transform: scaleX(var(--progress, 0));
+    transition: transform 0.8s var(--ease-out-expo);
+  }
+
+  .cart__lines {
+    display: grid;
+  }
+
+  .cart-line {
+    display: grid;
+    grid-template-columns: 5rem 1fr auto;
+    gap: 1rem;
+    padding-block: 1.25rem;
+    border-top: 1px solid var(--stone);
+    background: var(--surface);
+  }
+
+  .cart-line__media {
+    aspect-ratio: 5 / 6.5;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: var(--sand-deep);
+  }
+
+  .cart-line__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cart-line__body {
+    display: grid;
+    align-content: space-between;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .cart-line__name {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    line-height: 1.15;
+  }
+
+  .cart-line__meta {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .cart-line__row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .cart-line__remove {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .cart-line__remove:hover {
+    color: var(--ink);
+  }
+
+  .cart-line__price {
+    font-weight: 700;
+    font-size: var(--text-sm);
+    white-space: nowrap;
+  }
+
+  .cart__footer {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--stone);
+    background: var(--surface);
+  }
+
+  .cart__totals {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .cart__totals > div {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .cart__totals dd {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .cart__totals-total {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--stone);
+    font-size: var(--text-lg);
+  }
+
+  .cart__note {
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .cart__continue {
+    justify-self: center;
+    font-size: var(--text-sm);
+  }
+
+  /* Bag button in the header (also used by product pages) */
+  .bag-btn__count {
+    position: absolute;
+    top: 0.1rem;
+    right: 0;
+    display: grid;
+    place-items: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding-inline: 0.28rem;
+    border-radius: var(--radius-pill);
+    background: var(--coral);
+    color: var(--ink);
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+    transform: scale(0);
+    transition: transform 0.5s var(--ease-spring);
+  }
+
+  .bag-btn.has-items .bag-btn__count {
+    transform: scale(1);
+  }
+
+  .bag-btn__count.is-popping {
+    animation: pop 0.6s var(--ease-out-expo);
+  }
+</style>

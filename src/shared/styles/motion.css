@@ -1,0 +1,881 @@
+/*
+ * Motion system.
+ *
+ * 1. Cross-page view transitions (Astro ClientRouter)
+ * 2. Same-document view transitions (html[data-vt="<kind>"], set by withViewTransition)
+ * 3. Scroll-driven reveal utilities (+ IntersectionObserver fallback)
+ * 4. Marquee, keyframes and micro-interactions shared across components
+ * 5. Reduced motion
+ *
+ * Only transform, opacity, clip-path and (sparingly) filter are animated.
+ */
+
+/* =====================================================================
+   1. Cross-page transitions
+   ===================================================================== */
+
+@keyframes vt-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes vt-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+html[data-astro-transition]::view-transition-old(root) {
+  animation: vt-page-out 200ms var(--ease-in-out) both;
+}
+
+html[data-astro-transition]::view-transition-new(root) {
+  animation: vt-page-in 460ms var(--ease-page) 150ms both;
+}
+
+/* The header is a persisted, named element: it stays put while the page changes. */
+::view-transition-group(site-header) {
+  animation-duration: 0s;
+}
+
+::view-transition-old(site-header) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* Shared media (product card image -> product hero image). */
+.vt-media {
+  view-transition-class: vt-media;
+}
+
+::view-transition-group(.vt-media) {
+  animation-duration: 620ms;
+  animation-timing-function: var(--ease-out-expo);
+  overflow: clip;
+  border-radius: var(--radius-md);
+}
+
+::view-transition-image-pair(.vt-media) {
+  isolation: auto;
+}
+
+::view-transition-old(.vt-media),
+::view-transition-new(.vt-media) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  animation-duration: 620ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* =====================================================================
+   2. Same-document transitions
+   ===================================================================== */
+
+:where(html[data-vt])::view-transition-group(*) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+html[data-vt]::view-transition-old(root),
+html[data-vt]::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: var(--ease-out-quart);
+}
+
+/* Moving indicators (tabs, chips, sizes, thumbnails): only the group moves. */
+.vt-indicator {
+  view-transition-class: vt-indicator;
+}
+
+::view-transition-group(.vt-indicator) {
+  animation-duration: 560ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(.vt-indicator) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-new(.vt-indicator) {
+  animation: none;
+  height: 100%;
+  width: 100%;
+}
+
+/* First selection: the indicator has nowhere to travel from, so it fades in. */
+::view-transition-new(.vt-indicator):only-child {
+  animation: vt-fade-in 320ms linear both;
+}
+
+/* Chip text: stays in place, its colour cross-fades above the sliding indicator */
+.vt-label {
+  view-transition-class: vt-label;
+}
+
+/* Tab / panel swaps */
+.vt-panel {
+  view-transition-class: vt-panel;
+}
+
+::view-transition-group(.vt-panel) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(.vt-panel) {
+  animation: vt-panel-out 220ms var(--ease-in-out) both;
+  height: auto;
+}
+
+::view-transition-new(.vt-panel) {
+  animation: vt-panel-in 520ms var(--ease-out-expo) 90ms both;
+  height: auto;
+}
+
+@keyframes vt-panel-out {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes vt-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* Product cards re-flowing inside the shop grid */
+.vt-card {
+  view-transition-class: vt-card;
+}
+
+::view-transition-group(.vt-card) {
+  animation-duration: 640ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(.vt-card) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-new(.vt-card) {
+  animation: none;
+}
+
+::view-transition-old(.vt-card):only-child {
+  opacity: 1;
+  animation: vt-card-out 300ms var(--ease-in-out) both;
+}
+
+::view-transition-new(.vt-card):only-child {
+  animation: vt-card-in 560ms var(--ease-out-expo) 140ms both;
+}
+
+@keyframes vt-card-out {
+  to {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@keyframes vt-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+}
+
+/* Number that rolls (result count, quantity) */
+.vt-count {
+  view-transition-class: vt-count;
+}
+
+::view-transition-old(.vt-count) {
+  animation: vt-roll-out 240ms var(--ease-in-out) both;
+}
+
+::view-transition-new(.vt-count) {
+  animation: vt-roll-in 420ms var(--ease-out-expo) 60ms both;
+}
+
+html[data-vt='qty-down']::view-transition-old(.vt-count) {
+  animation-name: vt-roll-out-down;
+}
+
+html[data-vt='qty-down']::view-transition-new(.vt-count) {
+  animation-name: vt-roll-in-down;
+}
+
+@keyframes vt-roll-out {
+  to {
+    opacity: 0;
+    transform: translateY(-60%);
+  }
+}
+
+@keyframes vt-roll-in {
+  from {
+    opacity: 0;
+    transform: translateY(60%);
+  }
+}
+
+@keyframes vt-roll-out-down {
+  to {
+    opacity: 0;
+    transform: translateY(60%);
+  }
+}
+
+@keyframes vt-roll-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-60%);
+  }
+}
+
+/* Product gallery: new photo wipes in over the old one */
+html[data-vt='swatch']::view-transition-old(.vt-media),
+html[data-vt='thumb']::view-transition-old(.vt-media) {
+  animation: vt-media-out 700ms var(--ease-out-expo) both;
+}
+
+html[data-vt='swatch']::view-transition-new(.vt-media),
+html[data-vt='thumb']::view-transition-new(.vt-media) {
+  animation: vt-media-in 700ms var(--ease-out-expo) both;
+}
+
+@keyframes vt-media-in {
+  from {
+    clip-path: inset(0 0 0 100%);
+    transform: scale(1.08);
+  }
+  to {
+    clip-path: inset(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes vt-media-out {
+  to {
+    transform: scale(0.96);
+    opacity: 0.6;
+  }
+}
+
+/* Buttons that morph (add to bag) */
+.vt-btn {
+  view-transition-class: vt-btn;
+}
+
+::view-transition-group(.vt-btn) {
+  animation-duration: 480ms;
+  animation-timing-function: var(--ease-out-expo);
+  border-radius: var(--radius-pill);
+  overflow: clip;
+}
+
+::view-transition-old(.vt-btn) {
+  animation: vt-fade-out 200ms linear both;
+  height: 100%;
+  width: 100%;
+}
+
+::view-transition-new(.vt-btn) {
+  animation: vt-fade-in 320ms linear 80ms both;
+  height: 100%;
+  width: 100%;
+}
+
+/* Accordion items: the box grows, the content cross-fades */
+.vt-acc {
+  view-transition-class: vt-acc;
+}
+
+::view-transition-group(.vt-acc) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(.vt-acc) {
+  animation: vt-fade-out 160ms linear both;
+  height: 100%;
+}
+
+::view-transition-new(.vt-acc) {
+  animation: vt-fade-in 360ms linear 60ms both;
+  height: 100%;
+}
+
+/* Blocks that only glide (they sit below something that changes height) */
+.vt-glide {
+  view-transition-class: vt-glide;
+}
+
+::view-transition-group(.vt-glide) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(.vt-glide) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-new(.vt-glide) {
+  animation: none;
+}
+
+/* Drawer, scrim, mobile menu and dialog */
+.vt-scrim {
+  view-transition-class: vt-scrim;
+}
+
+html[data-vt='drawer']::view-transition-old(.vt-scrim) {
+  animation: vt-fade-out 380ms var(--ease-in-out) both;
+}
+
+html[data-vt='drawer']::view-transition-new(.vt-scrim) {
+  animation: vt-fade-in 420ms var(--ease-out-quart) both;
+}
+
+.vt-drawer {
+  view-transition-class: vt-drawer;
+}
+
+html[data-vt='drawer']::view-transition-old(.vt-drawer) {
+  animation: vt-drawer-out 420ms var(--ease-in-out) both;
+}
+
+html[data-vt='drawer']::view-transition-new(.vt-drawer) {
+  animation: vt-drawer-in 620ms var(--ease-out-expo) both;
+}
+
+@keyframes vt-drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes vt-drawer-out {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.vt-menu {
+  view-transition-class: vt-menu;
+}
+
+html[data-vt='menu']::view-transition-old(.vt-menu) {
+  animation: vt-menu-out 480ms var(--ease-in-out) both;
+}
+
+html[data-vt='menu']::view-transition-new(.vt-menu) {
+  animation: vt-menu-in 760ms var(--ease-out-expo) both;
+}
+
+@keyframes vt-menu-in {
+  from {
+    clip-path: circle(0% at calc(100% - 2.2rem) 2.6rem);
+  }
+  to {
+    clip-path: circle(150% at calc(100% - 2.2rem) 2.6rem);
+  }
+}
+
+@keyframes vt-menu-out {
+  from {
+    clip-path: circle(150% at calc(100% - 2.2rem) 2.6rem);
+  }
+  to {
+    clip-path: circle(0% at calc(100% - 2.2rem) 2.6rem);
+  }
+}
+
+.vt-dialog {
+  view-transition-class: vt-dialog;
+}
+
+html[data-vt='dialog']::view-transition-old(.vt-dialog) {
+  animation: vt-dialog-out 300ms var(--ease-in-out) both;
+}
+
+html[data-vt='dialog']::view-transition-new(.vt-dialog) {
+  animation: vt-dialog-in 560ms var(--ease-out-expo) both;
+}
+
+@keyframes vt-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.96);
+  }
+}
+
+@keyframes vt-dialog-out {
+  to {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+}
+
+/* Cart lines (inside the drawer): enter and leave sideways, the rest glides */
+.vt-line {
+  view-transition-class: vt-line;
+}
+
+::view-transition-group(.vt-line) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(.vt-line) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-new(.vt-line) {
+  animation: none;
+}
+
+::view-transition-old(.vt-line):only-child {
+  opacity: 1;
+  animation: vt-line-out 320ms var(--ease-in-out) both;
+}
+
+::view-transition-new(.vt-line):only-child {
+  animation: vt-line-in 560ms var(--ease-out-expo) 80ms both;
+}
+
+@keyframes vt-line-in {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+}
+
+@keyframes vt-line-out {
+  to {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+}
+
+/* Soft swap for small cards (newsletter) */
+.vt-soft {
+  view-transition-class: vt-soft;
+}
+
+::view-transition-group(.vt-soft) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(.vt-soft) {
+  animation: vt-fade-out 180ms linear both;
+  height: 100%;
+}
+
+::view-transition-new(.vt-soft) {
+  animation: vt-fade-in 360ms linear 100ms both;
+  height: 100%;
+}
+
+/* =====================================================================
+   3. Scroll-driven reveal utilities
+   ===================================================================== */
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-clip {
+  from {
+    clip-path: inset(0 0 100% 0 round var(--radius-md));
+  }
+  to {
+    clip-path: inset(0 0 0 0 round var(--radius-md));
+  }
+}
+
+@keyframes reveal-scale {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Stagger index: children get --i from their position (override inline if needed). */
+.reveal-stagger > :nth-child(1) { --i: 0; }
+.reveal-stagger > :nth-child(2) { --i: 1; }
+.reveal-stagger > :nth-child(3) { --i: 2; }
+.reveal-stagger > :nth-child(4) { --i: 3; }
+.reveal-stagger > :nth-child(5) { --i: 4; }
+.reveal-stagger > :nth-child(6) { --i: 5; }
+.reveal-stagger > :nth-child(7) { --i: 6; }
+.reveal-stagger > :nth-child(8) { --i: 7; }
+.reveal-stagger > :nth-child(n + 9) { --i: 8; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation-name: reveal-up;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+
+    .reveal-media {
+      animation-name: reveal-clip;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 35%;
+    }
+
+    .reveal-media :is(img) {
+      animation-name: reveal-scale;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+    }
+
+    .reveal-stagger > * {
+      animation-name: reveal-up;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--i, 0) * 7%) cover calc(30% + var(--i, 0) * 7%);
+    }
+  }
+}
+
+/* Fallback: IntersectionObserver toggles .is-visible (see shared/lib/reveal.ts). */
+@supports not (animation-timeline: view()) {
+  @media (scripting: enabled) {
+    .reveal,
+    .reveal-stagger > * {
+      opacity: 0;
+      transform: translateY(24px);
+      transition:
+        opacity 0.9s var(--ease-out-expo),
+        transform 0.9s var(--ease-out-expo);
+    }
+
+    .reveal-stagger > * {
+      transition-delay: calc(var(--i, 0) * 80ms);
+    }
+
+    .reveal.is-visible,
+    .reveal-stagger.is-visible > * {
+      opacity: 1;
+      transform: none;
+    }
+
+    .reveal-media {
+      clip-path: inset(0 0 100% 0 round var(--radius-md));
+      transition: clip-path 1.1s var(--ease-out-expo);
+    }
+
+    .reveal-media img {
+      transform: scale(1.08);
+      transition: transform 1.5s var(--ease-out-expo);
+    }
+
+    .reveal-media.is-visible {
+      clip-path: inset(0 0 0 0 round var(--radius-md));
+    }
+
+    .reveal-media.is-visible img {
+      transform: scale(1);
+    }
+  }
+}
+
+/* =====================================================================
+   4. Shared keyframes and micro-interactions
+   ===================================================================== */
+
+/* Infinite marquee: transform only, pauses on hover */
+.marquee {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+}
+
+.marquee__track {
+  display: flex;
+  flex: none;
+  min-width: 200%;
+  animation: marquee 48s linear infinite;
+  will-change: transform;
+}
+
+.marquee__group {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-around;
+  min-width: 50%;
+}
+
+.marquee:hover .marquee__track,
+.marquee:focus-within .marquee__track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Spring pop used by the bag badge */
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.1em);
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Reading progress line (product pages): scroll-driven, no listeners */
+.read-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 70;
+  height: 3px;
+  background: var(--coral);
+  transform: scaleX(0);
+  transform-origin: left;
+  pointer-events: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .read-progress {
+      animation-name: read-progress;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+@keyframes read-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .read-progress {
+    display: none;
+  }
+}
+
+/* Meters: filled by the scroll position, plus a wipe when a tab panel opens */
+.meter {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.meter__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.meter__track {
+  height: 0.6rem;
+  border-radius: var(--radius-pill);
+  background: rgb(19 32 31 / 0.12);
+  overflow: hidden;
+}
+
+.meter__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--teal);
+  transform-origin: left;
+  transform: scaleX(var(--score, 1));
+}
+
+.on-dark .meter__track {
+  background: rgb(243 237 228 / 0.2);
+}
+
+.on-dark .meter__fill {
+  background: var(--sand);
+}
+
+@keyframes meter-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(var(--score, 1));
+  }
+}
+
+@keyframes meter-wipe {
+  from {
+    clip-path: inset(0 100% 0 0 round 99px);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 99px);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .meter__fill {
+      animation-name: meter-fill;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+  }
+}
+
+@supports not (animation-timeline: view()) {
+  @media (scripting: enabled) {
+    .meter__fill {
+      transform: scaleX(0);
+      transition: transform 1.4s var(--ease-out-expo);
+    }
+
+    .is-visible .meter__fill,
+    .meter.is-visible .meter__fill {
+      transform: scaleX(var(--score, 1));
+    }
+  }
+}
+
+/* =====================================================================
+   5. Reduced motion
+   ===================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .reveal,
+  .reveal-media,
+  .reveal-media img,
+  .reveal-stagger > *,
+  .meter__fill,
+  .read-progress {
+    animation: none !important;
+  }
+
+  .reveal,
+  .reveal-media,
+  .reveal-media img,
+  .reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+
+  .read-progress {
+    display: none;
+  }
+
+  .marquee__track {
+    animation: none !important;
+  }
+
+  .marquee {
+    overflow-x: auto;
+  }
+}

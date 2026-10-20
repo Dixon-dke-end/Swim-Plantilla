@@ -1,0 +1,745 @@
+---
+import { getImage } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../shared/ui/Icon.astro';
+import Photo from '../../shared/ui/Photo.astro';
+import Stars from '../../shared/ui/Stars.astro';
+import ProductGrid from '../../modules/catalog/ui/ProductGrid.astro';
+import { photos } from '../../shared/assets/photos';
+import { formatCOP } from '../../shared/lib/format';
+import { CATEGORY_LABELS, getRelatedProducts, products } from '../../modules/catalog/data/products';
+import type { Product } from '../../modules/catalog/data/types';
+import { labTests } from '../../modules/lab/data/tests';
+
+export function getStaticPaths() {
+  return products.map((product) => ({ params: { slug: product.slug }, props: { product } }));
+}
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+const related = getRelatedProducts(product, 4);
+const isMen = product.category === 'hombre';
+
+const slides = [
+  ...product.colors.map((color, index) => ({
+    image: color.image,
+    alt: color.alt,
+    position: color.position,
+    color: index as number | null,
+    label: color.name,
+  })),
+  {
+    image: photos.hibiscusFabric.src,
+    alt: photos.hibiscusFabric.alt,
+    position: photos.hibiscusFabric.position,
+    color: null as number | null,
+    label: 'Detalle de la tela',
+  },
+];
+
+const tested = product.testedFor
+  .map((id) => labTests.find((test) => test.badge?.id === id))
+  .filter((test): test is NonNullable<typeof test> => Boolean(test));
+
+const ratingLabel = product.rating.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+const womenGuide = {
+  columns: ['Talla', 'Busto', 'Cintura', 'Cadera'],
+  rows: [
+    ['XS', '82–86', '62–66', '88–92'],
+    ['S', '86–90', '66–70', '92–96'],
+    ['M', '90–94', '70–74', '96–100'],
+    ['L', '94–99', '74–79', '100–105'],
+    ['XL', '99–104', '79–84', '105–110'],
+  ],
+};
+const menGuide = {
+  columns: ['Talla', 'Cintura', 'Cadera'],
+  rows: [
+    ['S', '76–81', '91–96'],
+    ['M', '82–87', '97–102'],
+    ['L', '88–95', '103–109'],
+    ['XL', '96–104', '110–116'],
+    ['XXL', '105–114', '117–124'],
+  ],
+};
+const guide = isMen ? menGuide : womenGuide;
+
+const accordions = [
+  { id: 'materiales', title: 'Materiales', body: [product.materials] },
+  { id: 'cuidado', title: 'Cuidado', body: product.care },
+  { id: 'envios', title: 'Envíos y cambios', body: [product.shipping] },
+];
+
+const social = await getImage({ src: product.colors[0]!.image, width: 1200, height: 630, format: 'jpg', quality: 70 });
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.name,
+  description: product.shortDescription,
+  image: new URL(social.src, Astro.site).toString(),
+  brand: { '@type': 'Brand', name: 'MAREA' },
+  offers: {
+    '@type': 'Offer',
+    priceCurrency: 'COP',
+    price: product.price,
+    availability: 'https://schema.org/InStock',
+    url: new URL(Astro.url.pathname, Astro.site).toString(),
+  },
+};
+const jsonLdText = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+---
+
+<BaseLayout title={product.name} description={product.shortDescription} image={product.colors[0]!.image}>
+  <script slot="head" type="application/ld+json" is:inline set:html={jsonLdText}></script>
+
+  <div class="read-progress" aria-hidden="true"></div>
+
+  <article
+    class="pdp container"
+    data-product
+    data-slug={product.slug}
+    data-name={product.name}
+    data-price={product.price}
+  >
+    <nav class="pdp__crumbs" aria-label="Ruta de navegación">
+      <ol class="breadcrumb">
+        <li><a href="/">Inicio</a></li>
+        <li><a href="/coleccion">Colección</a></li>
+        <li><a href={`/coleccion?cat=${product.category}`}>{CATEGORY_LABELS[product.category]}</a></li>
+        <li><span aria-current="page">{product.name}</span></li>
+      </ol>
+    </nav>
+
+    <div class="pdp__layout">
+      <div class="gallery">
+        <div class="gallery__stage vt-media" transition:name={`product-${product.slug}`}>
+          {
+            slides.map((slide, index) => (
+              <div
+                class="gallery__slide"
+                data-slide
+                data-color={slide.color ?? ''}
+                data-active={index === 0 ? '' : undefined}
+                aria-hidden={index === 0 ? 'false' : 'true'}
+              >
+                <Photo
+                  class="gallery__img"
+                  src={slide.image}
+                  alt={slide.alt}
+                  position={slide.position}
+                  sizes="(min-width: 64rem) 46vw, 100vw"
+                  widths={[640, 960, 1280, 1440]}
+                  quality={68}
+                  priority={index === 0}
+                />
+              </div>
+            ))
+          }
+        </div>
+
+        <ul class="gallery__thumbs" aria-label="Fotografías del producto">
+          {
+            slides.map((slide, index) => (
+              <li>
+                <button
+                  type="button"
+                  class="thumb"
+                  data-thumb
+                  aria-label={`Ver foto: ${slide.label}`}
+                  aria-pressed={index === 0 ? 'true' : 'false'}
+                >
+                  <Photo
+                    class="thumb__img"
+                    src={slide.image}
+                    alt=""
+                    position={slide.position}
+                    sizes="6rem"
+                    widths={[160, 240]}
+                    quality={55}
+                  />
+                  {index === 0 && <span class="thumb__ring" data-thumb-indicator aria-hidden="true"></span>}
+                </button>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="pdp__info">
+        <p class="eyebrow">{CATEGORY_LABELS[product.category]}</p>
+        <h1 class="pdp__title">{product.name}</h1>
+        <p class="pdp__price">{formatCOP(product.price)}</p>
+        <p class="pdp__rating">
+          <Stars rating={product.rating} />
+          <span>{ratingLabel}</span>
+          <span class="muted">({product.reviewCount} reseñas)</span>
+        </p>
+        <p class="pdp__lead">{product.description}</p>
+
+        <div class="pdp__field">
+          <p class="field__label">
+            Color: <span class="pdp__value" data-color-name>{product.colors[0]!.name}</span>
+          </p>
+          <div class="pdp__swatches" role="group" aria-label="Color">
+            {
+              product.colors.map((color, index) => (
+                <button
+                  type="button"
+                  class="swatch"
+                  style={`--swatch:${color.hex}`}
+                  data-swatch={index}
+                  data-name={color.name}
+                  aria-label={color.name}
+                  aria-pressed={index === 0 ? 'true' : 'false'}
+                >
+                  <span class="swatch__dot"></span>
+                </button>
+              ))
+            }
+          </div>
+        </div>
+
+        <div class="pdp__field">
+          <div class="pdp__field-head">
+            <p class="field__label">
+              Talla: <span class="pdp__value" data-size-label>Elige una talla</span>
+            </p>
+            <button type="button" class="link link--static pdp__guide" data-guide-open>
+              <Icon name="ruler" /> Guía de tallas
+            </button>
+          </div>
+          <div class="pdp__sizes" role="group" aria-label="Talla" data-size-row>
+            <span class="chip__indicator" data-size-indicator aria-hidden="true" hidden></span>
+            {
+              product.sizes.map((size) => (
+                <button type="button" class="chip pdp__size" data-size={size} aria-pressed="false">
+                  <span class="chip__label">{size}</span>
+                </button>
+              ))
+            }
+          </div>
+          <p class="pdp__error" data-size-error role="status"></p>
+        </div>
+
+        <div class="pdp__buy">
+          <div class="stepper" role="group" aria-label="Cantidad">
+            <button type="button" class="stepper__btn" data-qty-dec aria-label="Disminuir cantidad">−</button>
+            <output class="stepper__value" data-qty-value>1</output>
+            <button type="button" class="stepper__btn" data-qty-inc aria-label="Aumentar cantidad">+</button>
+          </div>
+          <button type="button" class="btn pdp__add" data-add data-state="idle">
+            <Icon name="check" class="pdp__add-check" />
+            <span data-add-label>Agregar a la bolsa</span>
+          </button>
+        </div>
+        <p class="sr-only" role="status" data-add-status></p>
+
+        <ul class="pdp__perks">
+          <li><Icon name="truck" /> <span>Envío gratis desde $250.000</span></li>
+          <li><Icon name="refresh" /> <span>Cambios sin costo durante 30 días</span></li>
+        </ul>
+
+        {
+          tested.length > 0 && (
+            <div class="pdp__tested">
+              <p class="field__label">Probado en</p>
+              <ul>
+                {tested.map((test) => (
+                  <li>
+                    <a class="badge badge--teal pdp__badge" href={`/pruebas#${test.id}`}>
+                      {test.badge?.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+
+        <div class="acc-list" data-accordion="pdp" data-glide=".related, .newsletter, .site-footer">
+          {
+            accordions.map((item) => (
+              <div class="acc" data-acc-item>
+                <h2 class="acc__head">
+                  <button
+                    type="button"
+                    class="acc__trigger"
+                    aria-expanded="false"
+                    aria-controls={`acc-${item.id}`}
+                    data-acc-trigger
+                  >
+                    <span>{item.title}</span>
+                    <Icon name="plus" class="acc__icon" />
+                  </button>
+                </h2>
+                <div class="acc__panel" id={`acc-${item.id}`} data-acc-panel hidden>
+                  <div class="acc__inner">
+                    {item.body.map((line) => (
+                      <p>{line}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <section class="related section container" aria-labelledby="related-title">
+    <div class="section-head reveal">
+      <div class="section-head__title">
+        <p class="eyebrow">Completa tu look</p>
+        <h2 id="related-title">También te puede <em>gustar</em></h2>
+      </div>
+      <a class="link" href="/coleccion">Ver toda la colección</a>
+    </div>
+    <ProductGrid products={related} label="Productos relacionados" />
+  </section>
+
+  <dialog class="guide" data-guide aria-labelledby="guide-title">
+    <div class="guide__panel" data-guide-panel>
+      <header class="guide__head">
+        <h2 id="guide-title">Guía de tallas</h2>
+        <button type="button" class="icon-btn" data-guide-close aria-label="Cerrar guía de tallas">
+          <Icon name="close" />
+        </button>
+      </header>
+      <p class="guide__text">
+        Medidas del cuerpo en centímetros. Si estás entre dos tallas, te recomendamos elegir la mayor.
+      </p>
+      <table class="guide__table">
+        <caption class="sr-only">Medidas por talla en centímetros</caption>
+        <thead>
+          <tr>
+            {guide.columns.map((column) => <th scope="col">{column}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {
+            guide.rows.map((row) => (
+              <tr>
+                {row.map((cell, index) => (index === 0 ? <th scope="row">{cell}</th> : <td>{cell}</td>))}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+      <p class="guide__foot">¿Dudas con tu talla? Escríbenos a hola@marea.example y te ayudamos.</p>
+    </div>
+  </dialog>
+</BaseLayout>
+
+<style is:global>
+  .pdp {
+    padding-top: calc(var(--header-h) + var(--space-md));
+    padding-bottom: var(--space-xl);
+  }
+
+  .pdp__crumbs {
+    margin-bottom: var(--space-lg);
+  }
+
+  .pdp__layout {
+    display: grid;
+    gap: var(--space-xl) clamp(2rem, 1rem + 4vw, 5rem);
+    align-items: start;
+  }
+
+  @media (min-width: 64rem) {
+    .pdp__layout {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    }
+
+    .pdp__info {
+      position: sticky;
+      top: calc(var(--header-h-compact) + 1.5rem);
+    }
+  }
+
+  /* ---------- Gallery ---------- */
+  .gallery {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  @media (min-width: 64rem) {
+    .gallery {
+      grid-template-columns: 5.5rem minmax(0, 1fr);
+      gap: var(--space-md);
+    }
+
+    .gallery__stage {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .gallery__thumbs {
+      grid-column: 1;
+      grid-row: 1;
+      flex-direction: column;
+    }
+  }
+
+  .gallery__stage {
+    display: grid;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--sand-deep);
+  }
+
+  .gallery__slide {
+    position: relative;
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .gallery__slide[data-active] {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .gallery__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gallery__thumbs {
+    display: flex;
+    gap: var(--space-sm);
+    align-content: start;
+  }
+
+  .thumb {
+    position: relative;
+    display: block;
+    width: clamp(4.2rem, 3rem + 4vw, 5.5rem);
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-sm);
+    background: var(--sand-deep);
+    transition: transform 0.4s var(--ease-out-expo);
+  }
+
+  .thumb:active {
+    transform: scale(0.95);
+  }
+
+  .thumb__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    opacity: 0.72;
+    transition: opacity 0.5s var(--ease-out-expo);
+  }
+
+  .thumb:hover .thumb__img,
+  .thumb[aria-pressed='true'] .thumb__img {
+    opacity: 1;
+  }
+
+  .thumb__ring {
+    position: absolute;
+    inset: -4px;
+    border: 2px solid var(--teal);
+    border-radius: calc(var(--radius-sm) + 3px);
+    pointer-events: none;
+  }
+
+  /* ---------- Info ---------- */
+  .pdp__info {
+    display: grid;
+    gap: var(--space-sm);
+    align-content: start;
+  }
+
+  .pdp__title {
+    font-size: var(--text-2xl);
+  }
+
+  .pdp__price {
+    font-size: var(--text-xl);
+    font-weight: 700;
+  }
+
+  .pdp__rating {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .pdp__lead {
+    margin-block: var(--space-sm);
+    color: var(--ink-soft);
+    max-width: 52ch;
+  }
+
+  .pdp__field {
+    display: grid;
+    gap: 0.7rem;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--stone);
+  }
+
+  .pdp__field-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  .pdp__value {
+    color: var(--ink);
+  }
+
+  .pdp__guide {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--text-sm);
+  }
+
+  .pdp__guide .icon {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .pdp__swatches,
+  .pdp__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .swatch {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    transition: transform 0.4s var(--ease-out-expo);
+  }
+
+  .swatch::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--ink);
+    border-radius: inherit;
+    transform: scale(0.7);
+    opacity: 0;
+    transition:
+      transform 0.5s var(--ease-spring),
+      opacity 0.3s var(--ease-out-expo);
+  }
+
+  .swatch__dot {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--swatch);
+    box-shadow: inset 0 0 0 1px rgb(19 32 31 / 0.25);
+  }
+
+  .swatch[aria-pressed='true']::before {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .swatch:active {
+    transform: scale(0.9);
+  }
+
+  .pdp__size {
+    min-width: 3.4rem;
+    justify-content: center;
+  }
+
+  .pdp__sizes.is-shaking {
+    animation: shake 0.5s var(--ease-out-quart);
+  }
+
+  .pdp__error {
+    min-height: 1.4em;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--coral-text);
+  }
+
+  .pdp__buy {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-sm);
+    align-items: stretch;
+  }
+
+  .pdp__buy .stepper {
+    min-height: 3.5rem;
+  }
+
+  .pdp__add {
+    min-height: 3.5rem;
+  }
+
+  .pdp__add-check {
+    display: none;
+  }
+
+  .pdp__add[data-state='added'] {
+    --btn-bg: var(--coral);
+    --btn-fg: var(--ink);
+    --btn-border: var(--coral);
+  }
+
+  .pdp__add[data-state='added'] .pdp__add-check {
+    display: block;
+  }
+
+  .pdp__perks {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: var(--space-sm);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .pdp__perks li {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .pdp__perks .icon {
+    width: 1.3rem;
+    height: 1.3rem;
+    color: var(--teal);
+  }
+
+  .pdp__tested {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: var(--space-sm);
+  }
+
+  .pdp__tested ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .pdp__badge {
+    padding: 0.45rem 0.9rem;
+    transition:
+      background-color 0.4s var(--ease-out-expo),
+      color 0.4s var(--ease-out-expo);
+  }
+
+  @media (hover: hover) {
+    .pdp__badge:hover {
+      background: var(--teal);
+      color: var(--sand);
+    }
+  }
+
+  /* ---------- Size guide dialog ---------- */
+  .guide {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: var(--gutter);
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    overflow: auto;
+  }
+
+  .guide[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .guide::backdrop {
+    background: var(--scrim);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+
+  .guide__panel {
+    width: min(100%, 34rem);
+    display: grid;
+    gap: var(--space-md);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: 0 30px 80px rgb(19 32 31 / 0.3);
+  }
+
+  .guide__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  .guide__head h2 {
+    font-size: var(--text-xl);
+  }
+
+  .guide__text,
+  .guide__foot {
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .guide__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .guide__table th,
+  .guide__table td {
+    padding: 0.8rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--stone);
+  }
+
+  .guide__table thead th {
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .guide__table tbody th {
+    font-weight: 800;
+  }
+
+  .guide__table tbody tr {
+    transition: background-color 0.3s var(--ease-out-expo);
+  }
+
+  @media (hover: hover) {
+    .guide__table tbody tr:hover {
+      background: var(--sand);
+    }
+  }
+</style>

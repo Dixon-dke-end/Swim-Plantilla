@@ -1,0 +1,61 @@
+---
+import type { Product } from '../data/types';
+import ProductCard from './ProductCard.astro';
+
+interface Props {
+  products: Product[];
+  /** How many cards load their photos right away. */
+  eagerCount?: number;
+  /** Marks the grid as the collection page grid (the shop controller reads these attributes). */
+  shop?: boolean;
+  /** Staggered scroll reveal for the cards. */
+  reveal?: boolean;
+  label?: string;
+  sizes?: string;
+}
+
+const { products, eagerCount = 0, shop = false, reveal = true, label, sizes } = Astro.props;
+---
+
+<ul class:list={['pgrid', { 'reveal-stagger': reveal }]} aria-label={label} data-shop-grid={shop ? '' : undefined}>
+  {
+    products.map((product, index) => (
+      <li
+        class="pgrid__item"
+        data-slug={product.slug}
+        data-name={product.name}
+        data-category={product.category}
+        data-price={product.price}
+        data-rank={product.bestsellerRank}
+        data-released={product.releasedAt}
+        data-new={String(product.isNew)}
+      >
+        <ProductCard product={product} eager={index < eagerCount} sizes={sizes} />
+      </li>
+    ))
+  }
+</ul>
+
+<style is:global>
+  .pgrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.75rem, 1rem + 3vw, 3.5rem) clamp(0.75rem, 0.4rem + 1.6vw, 1.75rem);
+  }
+
+  @media (min-width: 48rem) {
+    .pgrid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .pgrid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .pgrid__item {
+    min-width: 0;
+  }
+</style>

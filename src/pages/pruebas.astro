@@ -1,0 +1,354 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../shared/ui/Icon.astro';
+import Photo from '../shared/ui/Photo.astro';
+import { photos } from '../shared/assets/photos';
+import LabHero from '../modules/lab/ui/LabHero.astro';
+import TestSection from '../modules/lab/ui/TestSection.astro';
+import CompareSlider from '../modules/lab/ui/CompareSlider.astro';
+import { labFaq, labTests, labTimeline } from '../modules/lab/data/tests';
+
+const index = [
+  ...labTests.map((test) => ({ id: test.id, label: test.name })),
+  { id: 'comparacion', label: 'Antes y después' },
+  { id: 'proceso', label: 'Cómo trabajamos' },
+  { id: 'preguntas', label: 'Preguntas' },
+];
+
+const cta = photos.oceanAerial;
+---
+
+<BaseLayout
+  title="Pruebas de laboratorio"
+  description="Cloro, sol, sal, elasticidad y secado: así probamos cada tela MAREA antes de convertirla en un traje de baño."
+  image={photos.oceanRipple.src}
+  hero
+>
+  <LabHero />
+
+  <div class="container lab">
+    <aside class="lab__aside" aria-label="Índice de la página">
+      <nav class="lab-index" data-lab-index aria-label="En esta página">
+        <p class="lab-index__title eyebrow">En esta página</p>
+        <div class="lab-index__body">
+          <ol class="lab-index__list">
+          {
+            index.map((item) => (
+              <li>
+                <a class="lab-index__link" href={`#${item.id}`}>
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+          <span class="lab-index__marker" aria-hidden="true"></span>
+        </div>
+      </nav>
+    </aside>
+
+    <div class="lab__main">
+      {labTests.map((test, position) => <TestSection test={test} index={position} total={labTests.length} />)}
+
+      <section class="lab-block" id="comparacion" aria-labelledby="comparacion-title">
+        <p class="eyebrow eyebrow--coral reveal">Antes y después</p>
+        <h2 id="comparacion-title" class="reveal">Doscientas horas <em>después</em></h2>
+        <p class="lead reveal">
+          Desliza para comparar cómo se ve una tela MAREA frente a una tela convencional tras la prueba de cloro.
+        </p>
+        <div class="reveal">
+          <CompareSlider />
+        </div>
+      </section>
+
+      <section class="lab-block" id="proceso" aria-labelledby="proceso-title">
+        <p class="eyebrow eyebrow--coral reveal">Proceso</p>
+        <h2 id="proceso-title" class="reveal">Del hilo a la <em>aprobación</em></h2>
+        <ol class="timeline">
+          {
+            labTimeline.map((stage) => (
+              <li class="timeline__item reveal">
+                <span class="timeline__step" aria-hidden="true">
+                  {stage.step}
+                </span>
+                <div>
+                  <h3>{stage.title}</h3>
+                  <p>{stage.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+
+      <section class="lab-block" id="preguntas" aria-labelledby="preguntas-title">
+        <p class="eyebrow eyebrow--coral reveal">Preguntas frecuentes</p>
+        <h2 id="preguntas-title" class="reveal">Lo que nos <em>preguntan</em></h2>
+        <div class="acc-list reveal" data-accordion="faq" data-single data-glide=".lab-cta, .newsletter, .site-footer">
+          {
+            labFaq.map((item, position) => (
+              <div class="acc" data-acc-item>
+                <h3 class="acc__head">
+                  <button
+                    type="button"
+                    class="acc__trigger"
+                    aria-expanded="false"
+                    aria-controls={`faq-${position}`}
+                    data-acc-trigger
+                  >
+                    <span>{item.question}</span>
+                    <Icon name="plus" class="acc__icon" />
+                  </button>
+                </h3>
+                <div class="acc__panel" id={`faq-${position}`} data-acc-panel hidden>
+                  <div class="acc__inner">
+                    <p>{item.answer}</p>
+                  </div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="lab-cta on-dark" aria-labelledby="lab-cta-title">
+    <div class="lab-cta__media">
+      <Photo
+        class="lab-cta__img"
+        src={cta.src}
+        alt={cta.alt}
+        position={cta.position}
+        sizes="100vw"
+        widths={[640, 960, 1440]}
+        quality={60}
+      />
+    </div>
+    <div class="lab-cta__scrim" aria-hidden="true"></div>
+    <div class="container lab-cta__content">
+      <h2 id="lab-cta-title" class="reveal">Lo probamos para que tú solo <em>nades</em></h2>
+      <p class="reveal">Descubre las piezas que ya pasaron las cinco pruebas.</p>
+      <a class="btn btn--light reveal" href="/coleccion">
+        Comprar colección <Icon name="arrow-right" />
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style is:global>
+  .lab {
+    display: grid;
+    gap: var(--space-xl) clamp(2rem, 1rem + 5vw, 6rem);
+    padding-block: var(--space-2xl);
+  }
+
+  @media (min-width: 64rem) {
+    .lab {
+      grid-template-columns: 14rem minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  /* ---------- Sticky side index ---------- */
+  .lab__aside {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .lab__aside {
+      display: block;
+      position: sticky;
+      top: calc(var(--header-h-compact) + 2rem);
+    }
+  }
+
+  .lab-index {
+    --row: 2.5rem;
+    position: relative;
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .lab-index__list {
+    border-left: 1px solid var(--stone);
+  }
+
+  .lab-index__link {
+    display: flex;
+    align-items: center;
+    height: var(--row);
+    padding-left: 1rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--muted);
+    transition:
+      color 0.4s var(--ease-out-expo),
+      transform 0.5s var(--ease-out-expo);
+  }
+
+  .lab-index__link:hover,
+  .lab-index__link[aria-current='location'] {
+    color: var(--ink);
+  }
+
+  .lab-index__link[aria-current='location'] {
+    transform: translateX(0.25rem);
+  }
+
+  .lab-index__body {
+    position: relative;
+  }
+
+  .lab-index__marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: var(--row);
+    background: var(--teal);
+    opacity: 0;
+    transform: translateY(calc(var(--active, 0) * var(--row)));
+    transition:
+      transform 0.7s var(--ease-out-expo),
+      opacity 0.4s var(--ease-out-expo);
+  }
+
+  .lab-index[data-has-active] .lab-index__marker {
+    opacity: 1;
+  }
+
+  /* ---------- Blocks ---------- */
+  .lab__main {
+    min-width: 0;
+  }
+
+  .lab-block {
+    display: grid;
+    gap: var(--space-md);
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--stone);
+  }
+
+  /* ---------- Timeline ---------- */
+  .timeline {
+    position: relative;
+    display: grid;
+    margin-top: var(--space-md);
+    padding-left: clamp(3rem, 2rem + 3vw, 4.5rem);
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 1.1rem;
+    width: 2px;
+    background: var(--teal);
+    transform-origin: top;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .timeline::before {
+        transform: scaleY(0);
+        animation-name: timeline-draw;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: view();
+        animation-range: cover 15% cover 75%;
+      }
+    }
+  }
+
+  @keyframes timeline-draw {
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .timeline__item {
+    position: relative;
+    display: grid;
+    gap: 0.4rem;
+    padding-block: var(--space-lg);
+  }
+
+  .timeline__item::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--space-lg) + 0.45rem);
+    left: calc(-1 * clamp(3rem, 2rem + 3vw, 4.5rem) + 1.1rem - 0.4rem + 1px);
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background: var(--coral);
+    box-shadow: 0 0 0 4px var(--sand);
+  }
+
+  .timeline__step {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--coral-text);
+  }
+
+  .timeline__item h3 {
+    font-size: var(--text-xl);
+  }
+
+  .timeline__item p {
+    max-width: 52ch;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Closing call to action ---------- */
+  .lab-cta {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: center;
+    min-height: min(70vh, 34rem);
+    padding-block: var(--space-2xl);
+    overflow: hidden;
+    color: var(--sand);
+    background: var(--teal-deep);
+  }
+
+  .lab-cta__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    border-radius: 0;
+  }
+
+  .lab-cta__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .lab-cta__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(90deg, rgb(9 30 31 / 0.82) 0%, rgb(9 30 31 / 0.45) 60%, rgb(9 30 31 / 0.25) 100%);
+  }
+
+  .lab-cta__content {
+    display: grid;
+    gap: var(--space-md);
+    justify-items: start;
+  }
+
+  .lab-cta__content h2 {
+    max-width: 16ch;
+    font-size: var(--text-3xl);
+  }
+
+  .lab-cta__content p {
+    max-width: 40ch;
+    font-size: var(--text-lg);
+  }
+</style>

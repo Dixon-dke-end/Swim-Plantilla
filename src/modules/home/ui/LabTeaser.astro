@@ -1,0 +1,171 @@
+---
+import Icon from '../../../shared/ui/Icon.astro';
+import { formatNumber } from '../../../shared/lib/format';
+import { labTests } from '../../lab/data/tests';
+---
+
+<section class="section lab-teaser on-dark" aria-labelledby="lab-teaser-title">
+  <div class="container" data-tabs="lab">
+    <div class="section-head reveal">
+      <div class="section-head__title">
+        <p class="eyebrow lab-teaser__eyebrow">Pruebas de laboratorio</p>
+        <h2 id="lab-teaser-title">Probamos cada tela hasta que <em>no pueda más</em></h2>
+      </div>
+      <a class="link arrow-link" href="/pruebas">
+        Ver todas las pruebas <Icon name="arrow-right" />
+      </a>
+    </div>
+
+    <div class="lab-teaser__tabs" role="tablist" aria-label="Pruebas de laboratorio">
+      {
+        labTests.map((test, index) => (
+          <button
+            type="button"
+            role="tab"
+            class="chip"
+            id={`lab-tab-${test.id}`}
+            aria-controls={`lab-panel-${test.id}`}
+            aria-selected={index === 0 ? 'true' : 'false'}
+          >
+            <span class="chip__label">{test.name}</span>
+            {index === 0 && <span class="chip__indicator" data-indicator aria-hidden="true"></span>}
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      labTests.map((test, index) => (
+        <div
+          class:list={['lab-panel', { 'is-initial': index === 0 }]}
+          role="tabpanel"
+          id={`lab-panel-${test.id}`}
+          aria-labelledby={`lab-tab-${test.id}`}
+          hidden={index !== 0}
+        >
+          <p class="lab-panel__metric">
+            <span
+              class="lab-panel__value display"
+              data-counter={test.value}
+              data-prefix={test.prefix ?? ''}
+              data-suffix={test.suffix ?? ''}
+              data-counter-repeat
+            >
+              {`${test.prefix ?? ''}${formatNumber(test.value)}${test.suffix ?? ''}`}
+            </span>
+            <span class="lab-panel__caption">{test.valueLabel}</span>
+          </p>
+
+          <div class="lab-panel__detail">
+            <h3 class="lab-panel__title">{test.title}</h3>
+            <p class="lab-panel__summary">{test.summary}</p>
+            <div class="meter" style={`--score:${test.score}`}>
+              <div class="meter__row">
+                <span>{test.scoreLabel}</span>
+                <span>{Math.round(test.score * 100)} %</span>
+              </div>
+              <div class="meter__track">
+                <div class="meter__fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style is:global>
+  .lab-teaser {
+    background: var(--teal-deep);
+    color: var(--sand);
+  }
+
+  .lab-teaser__eyebrow {
+    color: var(--teal-soft);
+  }
+
+  .lab-teaser__tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: var(--space-xl);
+    padding-bottom: 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .lab-teaser__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lab-teaser .chip {
+    border-color: rgb(243 237 228 / 0.4);
+  }
+
+  .lab-teaser .chip__indicator {
+    background: var(--sand);
+  }
+
+  .lab-teaser .chip[aria-selected='true'] {
+    color: var(--ink);
+    border-color: var(--sand);
+  }
+
+  @media (hover: hover) {
+    .lab-teaser .chip:not([aria-selected='true']):hover {
+      border-color: var(--sand);
+    }
+  }
+
+  .lab-panel {
+    display: grid;
+    gap: var(--space-xl) clamp(2rem, 1rem + 5vw, 6rem);
+    align-items: end;
+    padding-block: var(--space-md) var(--space-sm);
+    border-top: 1px solid rgb(243 237 228 / 0.22);
+  }
+
+  @media (min-width: 56rem) {
+    .lab-panel {
+      grid-template-columns: 1.2fr 1fr;
+    }
+  }
+
+  .lab-panel__metric {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .lab-panel__value {
+    font-size: clamp(4rem, 2rem + 11vw, 11rem);
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+    font-variant-numeric: tabular-nums;
+    min-height: 0.95em;
+  }
+
+  .lab-panel__caption {
+    font-size: var(--text-lg);
+    color: rgb(243 237 228 / 0.88);
+  }
+
+  .lab-panel__detail {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .lab-panel__title {
+    font-size: var(--text-xl);
+  }
+
+  .lab-panel__summary {
+    max-width: 44ch;
+    color: rgb(243 237 228 / 0.88);
+  }
+
+  /* After a tab switch the bar fills with time; the first panel is filled by the scroll position. */
+  .lab-panel:not(.is-initial) .meter__fill {
+    animation: meter-fill 1.3s var(--ease-out-expo) 0.2s both;
+    animation-timeline: auto;
+  }
+</style>

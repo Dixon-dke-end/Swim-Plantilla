@@ -1,0 +1,166 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductGrid from '../modules/catalog/ui/ProductGrid.astro';
+import { products } from '../modules/catalog/data/products';
+import { sortProducts, resultCountLabel } from '../modules/catalog/ui/filters';
+
+const ordered = sortProducts(products, 'destacados');
+
+const chips = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'bikinis', label: 'Bikinis' },
+  { value: 'enterizos', label: 'Enterizos' },
+  { value: 'hombre', label: 'Hombre' },
+  { value: 'resort', label: 'Resort' },
+];
+
+const sorts = [
+  { value: 'destacados', label: 'Destacados' },
+  { value: 'precio-asc', label: 'Precio: de menor a mayor' },
+  { value: 'precio-desc', label: 'Precio: de mayor a menor' },
+  { value: 'novedades', label: 'Novedades' },
+];
+---
+
+<BaseLayout
+  title="Colección"
+  description="Toda la colección MAREA: bikinis, enterizos, línea Resort y shorts de baño para hombre, hechos con telas recicladas."
+>
+  <section class="page-head container">
+    <nav aria-label="Ruta de navegación">
+      <ol class="breadcrumb">
+        <li><a href="/">Inicio</a></li>
+        <li><span aria-current="page">Colección</span></li>
+      </ol>
+    </nav>
+    <h1 class="page-head__title">La <em>colección</em></h1>
+    <p class="lead page-head__lead">
+      Piezas pensadas para el agua, en telas recicladas que resisten el cloro, el sol y la sal.
+    </p>
+  </section>
+
+  <section class="container shop" data-shop aria-label="Productos">
+    <div class="shop__bar">
+      <div class="shop__chips" role="group" aria-label="Filtrar por categoría">
+        {
+          chips.map((chip, index) => (
+            <button
+              type="button"
+              class="chip"
+              data-shop-chip={chip.value}
+              aria-pressed={index === 0 ? 'true' : 'false'}
+            >
+              <span class="chip__label">{chip.label}</span>
+              {index === 0 && <span class="chip__indicator" data-indicator aria-hidden="true"></span>}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="shop__tools">
+        <p class="shop__count" role="status" aria-live="polite">
+          <span class="shop__count-value" data-shop-count>{resultCountLabel(ordered.length)}</span>
+        </p>
+        <div class="shop__sort">
+          <label class="field__label" for="shop-sort">Ordenar por</label>
+          <select class="select" id="shop-sort" data-shop-sort>
+            {sorts.map((sort) => <option value={sort.value}>{sort.label}</option>)}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <ProductGrid products={ordered} eagerCount={4} shop label="Resultados de la colección" />
+
+    <div class="shop__empty" data-shop-empty hidden>
+      <p class="display">Nada por aquí todavía.</p>
+      <p class="muted">Prueba con otra categoría para ver más piezas.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style is:global>
+  .shop {
+    padding-bottom: var(--space-2xl);
+  }
+
+  .shop__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-xl);
+    padding-block: var(--space-md);
+    border-block: 1px solid var(--stone);
+  }
+
+  .shop__chips {
+    max-width: 100%;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 5px;
+    margin: -5px;
+    scrollbar-width: none;
+  }
+
+  .shop__chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shop__tools {
+    flex: 1 1 auto;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  .shop__count {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .shop__count-value {
+    display: inline-block;
+    min-width: 6.5rem;
+  }
+
+  .shop__sort {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .shop__sort .field__label {
+    display: none;
+  }
+
+  @media (min-width: 40rem) {
+    .shop__sort .field__label {
+      display: block;
+    }
+  }
+
+  .shop__sort .select {
+    width: auto;
+    min-width: 12.5rem;
+    min-height: 2.75rem;
+  }
+
+  .shop__empty {
+    display: grid;
+    gap: var(--space-sm);
+    padding-block: var(--space-2xl);
+    text-align: center;
+    justify-items: center;
+  }
+
+  .shop__empty .display {
+    font-size: var(--text-2xl);
+  }
+</style>

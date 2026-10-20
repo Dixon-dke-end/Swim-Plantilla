@@ -1,0 +1,164 @@
+---
+import Newsletter from './Newsletter.astro';
+
+const year = new Date().getFullYear();
+
+const shop = [
+  { href: '/coleccion', label: 'Toda la colección' },
+  { href: '/coleccion?cat=bikinis', label: 'Bikinis' },
+  { href: '/coleccion?cat=enterizos', label: 'Enterizos' },
+  { href: '/coleccion?cat=hombre', label: 'Hombre' },
+  { href: '/coleccion?cat=resort', label: 'Resort' },
+];
+
+const brand = [
+  { href: '/pruebas', label: 'Nuestras pruebas' },
+  { href: '/pruebas#cloro', label: 'Resistencia al cloro' },
+  { href: '/pruebas#sol', label: 'Protección solar' },
+  { href: '/pruebas#preguntas', label: 'Preguntas frecuentes' },
+];
+---
+
+<Newsletter />
+
+<footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div class="site-footer__brand">
+      <a class="wordmark" href="/" aria-label="MAREA, ir al inicio">MAREA</a>
+      <p class="site-footer__tagline">Hecho para el agua. Diseñado para quedarse.</p>
+      <p class="site-footer__small">Trajes de baño de telas recicladas, probados en cloro, sol y sal.</p>
+    </div>
+
+    <nav class="site-footer__col" aria-labelledby="footer-shop">
+      <h2 class="site-footer__heading" id="footer-shop">Tienda</h2>
+      <ul>
+        {
+          shop.map((link) => (
+            <li>
+              <a class="link" href={link.href}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav class="site-footer__col" aria-labelledby="footer-brand">
+      <h2 class="site-footer__heading" id="footer-brand">Marca</h2>
+      <ul>
+        {
+          brand.map((link) => (
+            <li>
+              <a class="link" href={link.href}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-footer__col">
+      <h2 class="site-footer__heading">Ayuda</h2>
+      <ul>
+        <li>Envío gratis desde $250.000</li>
+        <li>Cambios sin costo durante 30 días</li>
+        <li>
+          <a class="link" href="mailto:hola@marea.example">hola@marea.example</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container site-footer__bottom">
+    <p>© {year} MAREA. Marca ficticia con fines de demostración.</p>
+    <p>
+      Fotografías:{" "}
+      <a class="link" href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a>
+    </p>
+    <p>
+      <a class="link" href="/contabilidad">Contabilidad (demo)</a>
+    </p>
+  </div>
+</footer>
+
+<style is:global>
+  .site-footer {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-2xl);
+    border-top: 1px solid var(--stone);
+    font-size: var(--text-sm);
+  }
+
+  .site-footer__grid {
+    display: grid;
+    gap: var(--space-xl) var(--gutter);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-footer__brand {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--space-sm);
+    align-content: start;
+  }
+
+  .site-footer__brand .wordmark {
+    justify-self: start;
+    padding-left: 0;
+    font-size: 2rem;
+  }
+
+  .site-footer__tagline {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-style: italic;
+    font-weight: 340;
+    line-height: 1.15;
+    max-width: 18ch;
+  }
+
+  .site-footer__small {
+    max-width: 38ch;
+    color: var(--muted);
+  }
+
+  .site-footer__heading {
+    margin-bottom: var(--space-md);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .site-footer__col ul {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  @media (min-width: 56rem) {
+    .site-footer__grid {
+      grid-template-columns: 1.6fr repeat(3, minmax(0, 1fr));
+    }
+
+    .site-footer__brand {
+      grid-column: auto;
+    }
+  }
+
+  .site-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    margin-top: var(--space-2xl);
+    padding-block: var(--space-lg);
+    border-top: 1px solid var(--stone);
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+</style>

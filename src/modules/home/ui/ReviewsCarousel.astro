@@ -1,0 +1,149 @@
+---
+import Icon from '../../../shared/ui/Icon.astro';
+import Stars from '../../../shared/ui/Stars.astro';
+import { reviews } from '../../catalog/data/reviews';
+
+const average = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+const averageLabel = average.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+---
+
+<section class="section reviews" aria-labelledby="reviews-title">
+  <div class="container" data-carousel>
+    <div class="section-head reveal">
+      <div class="section-head__title">
+        <p class="eyebrow">Opiniones · contenido de muestra</p>
+        <h2 id="reviews-title">Lo que dicen quienes <em>ya nadaron</em></h2>
+        <p class="reviews__summary">
+          <Stars rating={average} />
+          <span>{averageLabel} de 5 en las reseñas de ejemplo</span>
+        </p>
+      </div>
+      <div class="reviews__controls">
+        <button type="button" class="icon-btn reviews__btn" data-carousel-prev aria-label="Reseña anterior">
+          <Icon name="arrow-left" />
+        </button>
+        <button type="button" class="icon-btn reviews__btn" data-carousel-next aria-label="Reseña siguiente">
+          <Icon name="arrow-right" />
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="reviews__track"
+      data-carousel-track
+      role="group"
+      aria-roledescription="carrusel"
+      aria-label="Reseñas de ejemplo"
+      tabindex="0"
+    >
+      {
+        reviews.map((review) => (
+          <article class="review">
+            <Stars rating={review.rating} />
+            <h3 class="review__title">{review.title}</h3>
+            <p class="review__body">{review.body}</p>
+            <p class="review__meta">
+              <strong>
+                {review.name} {review.city}
+              </strong>
+              <span>{review.product}</span>
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .reviews__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .reviews__controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .reviews__btn {
+    border: 1px solid var(--stone-strong);
+    transition:
+      background-color 0.4s var(--ease-out-expo),
+      border-color 0.4s var(--ease-out-expo),
+      opacity 0.4s var(--ease-out-expo),
+      transform 0.35s var(--ease-out-expo);
+  }
+
+  .reviews__btn[aria-disabled='true'] {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  @media (hover: hover) {
+    .reviews__btn:not([aria-disabled='true']):hover {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--sand);
+    }
+  }
+
+  .reviews__track {
+    display: flex;
+    gap: clamp(0.75rem, 0.4rem + 1.6vw, 1.5rem);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.5rem;
+  }
+
+  .reviews__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .review {
+    flex: 0 0 min(86%, 24rem);
+    display: grid;
+    align-content: start;
+    gap: var(--space-sm);
+    padding: clamp(1.25rem, 1rem + 1.2vw, 2rem);
+    border: 1px solid var(--stone);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    scroll-snap-align: start;
+    transition:
+      transform 0.7s var(--ease-out-expo),
+      border-color 0.4s var(--ease-out-expo);
+  }
+
+  @media (hover: hover) {
+    .review:hover {
+      transform: translateY(-4px);
+      border-color: var(--stone-strong);
+    }
+  }
+
+  .review__title {
+    font-size: var(--text-lg);
+  }
+
+  .review__body {
+    color: var(--ink-soft);
+  }
+
+  .review__meta {
+    display: grid;
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--stone);
+    font-size: var(--text-sm);
+  }
+
+  .review__meta span {
+    color: var(--muted);
+  }
+</style>

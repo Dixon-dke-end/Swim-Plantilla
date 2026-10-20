@@ -1,0 +1,65 @@
+---
+import Icon from '../../../shared/ui/Icon.astro';
+import ProductGrid from '../../catalog/ui/ProductGrid.astro';
+import { getBestsellers, getNewArrivals } from '../../catalog/data/products';
+
+const tabs = [
+  { id: 'bestsellers', label: 'Más vendidos', products: getBestsellers(4) },
+  { id: 'novedades', label: 'Novedades', products: getNewArrivals(4) },
+];
+---
+
+<section class="section featured" id="destacados" aria-labelledby="featured-title">
+  <div class="container" data-tabs="featured">
+    <div class="section-head reveal">
+      <div class="section-head__title">
+        <p class="eyebrow">Destacados</p>
+        <h2 id="featured-title">Lo que <em>más</em> se lleva</h2>
+      </div>
+      <div class="featured__tabs" role="tablist" aria-label="Productos destacados">
+        {
+          tabs.map((tab, index) => (
+            <button
+              type="button"
+              role="tab"
+              class="chip"
+              id={`tab-${tab.id}`}
+              aria-controls={`panel-${tab.id}`}
+              aria-selected={index === 0 ? 'true' : 'false'}
+            >
+              <span class="chip__label">{tab.label}</span>
+              {index === 0 && <span class="chip__indicator" data-indicator aria-hidden="true"></span>}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    {
+      tabs.map((tab, index) => (
+        <div role="tabpanel" id={`panel-${tab.id}`} aria-labelledby={`tab-${tab.id}`} hidden={index !== 0}>
+          <ProductGrid products={tab.products} reveal={index === 0} />
+        </div>
+      ))
+    }
+
+    <div class="featured__more reveal">
+      <a class="btn btn--ghost" href="/coleccion">
+        Ver toda la colección <Icon name="arrow-right" />
+      </a>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .featured__tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .featured__more {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-xl);
+  }
+</style>

@@ -1,0 +1,125 @@
+---
+import { formatNumber } from '../../../shared/lib/format';
+import type { LabTest } from '../data/tests';
+
+interface Props {
+  test: LabTest;
+  /** Position in the list, used for the "01 / 05" counter. */
+  index: number;
+  total: number;
+}
+
+const { test, index, total } = Astro.props;
+const pad = (value: number) => String(value).padStart(2, '0');
+---
+
+<section class="test" id={test.id} aria-labelledby={`${test.id}-title`}>
+  <p class="test__num eyebrow reveal">{pad(index + 1)} / {pad(total)}</p>
+  <h2 class="test__title reveal" id={`${test.id}-title`}>{test.title}</h2>
+
+  <p class="test__metric reveal">
+    <span
+      class="test__value display"
+      data-counter={test.value}
+      data-prefix={test.prefix ?? ''}
+      data-suffix={test.suffix ?? ''}
+    >
+      {`${test.prefix ?? ''}${formatNumber(test.value)}${test.suffix ?? ''}`}
+    </span>
+    <span class="test__caption">{test.valueLabel}</span>
+  </p>
+
+  <p class="lead test__summary reveal">{test.summary}</p>
+
+  <dl class="test__facts reveal-stagger">
+    <div>
+      <dt>Método</dt>
+      <dd>{test.method}</dd>
+    </div>
+    <div>
+      <dt>Resultado</dt>
+      <dd>{test.result}</dd>
+    </div>
+  </dl>
+
+  <div class="meter" style={`--score:${test.score}`}>
+    <div class="meter__row">
+      <span>{test.scoreLabel}</span>
+      <span>{Math.round(test.score * 100)} %</span>
+    </div>
+    <div class="meter__track">
+      <div class="meter__fill"></div>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .test {
+    display: grid;
+    gap: var(--space-md);
+    padding-block: var(--space-2xl);
+    border-top: 1px solid var(--stone);
+  }
+
+  .test:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .test__title {
+    font-size: var(--text-2xl);
+    max-width: 18ch;
+  }
+
+  .test__metric {
+    display: grid;
+    gap: 0.4rem;
+    margin-block: var(--space-sm);
+  }
+
+  .test__value {
+    font-size: clamp(4.5rem, 2rem + 12vw, 10rem);
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .test__caption {
+    font-size: var(--text-lg);
+    color: var(--ink-soft);
+  }
+
+  .test__facts {
+    display: grid;
+    gap: var(--space-md);
+    margin-block: var(--space-sm);
+  }
+
+  @media (min-width: 48rem) {
+    .test__facts {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .test__facts > div {
+    padding: var(--space-lg);
+    border: 1px solid var(--stone);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+
+  .test__facts dt {
+    margin-bottom: 0.5rem;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--coral-text);
+  }
+
+  .test__facts dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+</style>

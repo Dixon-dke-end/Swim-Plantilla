@@ -1,0 +1,157 @@
+---
+import Photo from '../../../shared/ui/Photo.astro';
+import { photos } from '../../../shared/assets/photos';
+import { formatNumber } from '../../../shared/lib/format';
+import { labTests } from '../../lab/data/tests';
+
+const photo = photos.oceanRipple;
+const highlights = labTests.slice(0, 3);
+---
+
+<section class="lab-hero on-dark" aria-labelledby="lab-title">
+  <div class="lab-hero__media">
+    <Photo
+      class="lab-hero__img"
+      src={photo.src}
+      alt={photo.alt}
+      position={photo.position}
+      sizes="100vw"
+      widths={[640, 960, 1440, 1800]}
+      quality={68}
+      priority
+    />
+    <div class="lab-hero__scrim" aria-hidden="true"></div>
+  </div>
+
+  <div class="lab-hero__content container">
+    <p class="eyebrow lab-hero__eyebrow">Pruebas de laboratorio</p>
+    <h1 id="lab-title" class="display lab-hero__title">Si una tela no <em>aguanta</em>, no se vende.</h1>
+    <p class="lab-hero__lead">
+      Cinco pruebas, cientos de horas de agua, sol y sal. Estos son los números detrás de cada prenda MAREA.
+    </p>
+    <ul class="lab-hero__stats">
+      {
+        highlights.map((test) => (
+          <li>
+            <span class="lab-hero__stat-value">
+              {`${test.prefix ?? ''}${formatNumber(test.value)}${test.suffix ?? ''}`}
+            </span>
+            <span class="lab-hero__stat-label">{test.name}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style is:global>
+  .lab-hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+    min-height: min(78vh, 46rem);
+    min-height: min(78svh, 46rem);
+    padding-block: calc(var(--header-h) + var(--space-xl)) var(--space-2xl);
+    overflow: hidden;
+    background: var(--teal-deep);
+    color: var(--sand);
+  }
+
+  .lab-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  .lab-hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: hero-kenburns 16s var(--ease-out-quart) both;
+  }
+
+  .lab-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgb(9 53 55 / 0.55) 0%, rgb(9 53 55 / 0) 30%),
+      linear-gradient(0deg, rgb(9 30 31 / 0.82) 0%, rgb(9 30 31 / 0.35) 55%, rgb(9 30 31 / 0.15) 100%);
+  }
+
+  .lab-hero__content {
+    display: grid;
+    gap: var(--space-md);
+    justify-items: start;
+  }
+
+  .lab-hero__eyebrow {
+    color: var(--sand);
+    animation: rise-in 1s var(--ease-out-expo) 0.1s both;
+  }
+
+  .lab-hero__title {
+    max-width: 14ch;
+    font-size: var(--text-3xl);
+    color: var(--sand);
+    animation: rise-in 1.2s var(--ease-out-expo) 0.25s both;
+  }
+
+  .lab-hero__lead {
+    max-width: 46ch;
+    font-size: var(--text-lg);
+    color: rgb(243 237 228 / 0.92);
+    animation: rise-in 1.2s var(--ease-out-expo) 0.5s both;
+  }
+
+  .lab-hero__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md) var(--space-xl);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid rgb(243 237 228 / 0.3);
+    animation: rise-in 1.2s var(--ease-out-expo) 0.7s both;
+  }
+
+  .lab-hero__stats li {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .lab-hero__stat-value {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .lab-hero__stat-label {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(243 237 228 / 0.85);
+  }
+
+  @keyframes hero-kenburns {
+    from {
+      transform: scale(1.16);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lab-hero__img,
+    .lab-hero__eyebrow,
+    .lab-hero__title,
+    .lab-hero__lead,
+    .lab-hero__stats {
+      animation: none !important;
+    }
+  }
+</style>

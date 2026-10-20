@@ -1,0 +1,128 @@
+---
+import Photo from '../../../shared/ui/Photo.astro';
+import Icon from '../../../shared/ui/Icon.astro';
+import { photos } from '../../../shared/assets/photos';
+
+const photo = photos.hibiscusFabric;
+
+const facts = [
+  { icon: 'leaf', title: 'Telas recicladas', text: 'Poliamida regenerada a partir de redes de pesca y residuos textiles.' },
+  { icon: 'drop', title: 'Color que no se va', text: 'Teñido en dos pasos para que el estampado resista el cloro y el sol.' },
+  { icon: 'stretch', title: 'Elasticidad real', text: 'Se estira en cuatro direcciones y recupera su forma, una y otra vez.' },
+] as const;
+---
+
+<section class="section fabric" aria-labelledby="fabric-title">
+  <div class="container fabric__grid">
+    <figure class="fabric__figure reveal-media">
+      <Photo
+        class="fabric__img"
+        src={photo.src}
+        alt={photo.alt}
+        position={photo.position}
+        sizes="(min-width: 64rem) 52vw, 100vw"
+        widths={[640, 960, 1440]}
+      />
+    </figure>
+
+    <div class="fabric__copy">
+      <p class="eyebrow eyebrow--coral reveal">Nuestra tela</p>
+      <h2 id="fabric-title" class="reveal">Una tela que <em>recuerda</em> su forma</h2>
+      <p class="lead reveal">
+        Cada estampado nace en una tela pensada para el agua: suave sobre la piel, firme en el movimiento y lista para
+        pasar horas al sol. Si no supera nuestras pruebas, no llega a la tienda.
+      </p>
+      <ul class="fabric__facts reveal-stagger">
+        {
+          facts.map((fact) => (
+            <li class="fabric__fact">
+              <span class="fabric__icon">
+                <Icon name={fact.icon} />
+              </span>
+              <div>
+                <h3>{fact.title}</h3>
+                <p>{fact.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="link arrow-link reveal" href="/pruebas">
+        Conocer cómo la probamos <Icon name="arrow-right" />
+      </a>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .fabric__grid {
+    display: grid;
+    gap: var(--space-xl) clamp(2rem, 1rem + 5vw, 6rem);
+    align-items: center;
+  }
+
+  @media (min-width: 64rem) {
+    .fabric__grid {
+      grid-template-columns: 1.15fr 1fr;
+    }
+  }
+
+  .fabric__figure {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--sand-deep);
+  }
+
+  .fabric__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .fabric__copy {
+    display: grid;
+    gap: var(--space-md);
+    justify-items: start;
+  }
+
+  .fabric__facts {
+    display: grid;
+    width: 100%;
+    margin-block: var(--space-sm);
+    border-top: 1px solid var(--stone);
+  }
+
+  .fabric__fact {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-md);
+    padding-block: var(--space-md);
+    border-bottom: 1px solid var(--stone);
+  }
+
+  .fabric__fact h3 {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .fabric__fact p {
+    color: var(--ink-soft);
+    font-size: var(--text-sm);
+  }
+
+  .fabric__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: var(--teal-soft);
+    color: var(--teal);
+  }
+</style>

@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Marquee from '../shared/ui/Marquee.astro';
+import Hero from '../modules/home/ui/Hero.astro';
+import CategoryTiles from '../modules/home/ui/CategoryTiles.astro';
+import FeaturedTabs from '../modules/home/ui/FeaturedTabs.astro';
+import FabricStory from '../modules/home/ui/FabricStory.astro';
+import LabTeaser from '../modules/home/ui/LabTeaser.astro';
+import Lookbook from '../modules/home/ui/Lookbook.astro';
+import ReviewsCarousel from '../modules/home/ui/ReviewsCarousel.astro';
+
+const benefits = ['Envío gratis desde $250.000', 'UPF 50+', 'Resistente al cloro', 'Telas recicladas'];
+---
+
+<BaseLayout
+  title="Trajes de baño de telas recicladas"
+  description="MAREA: bikinis, enterizos y shorts de baño de telas recicladas, probados en cloro, sol y sal. Hecho para el agua. Diseñado para quedarse."
+  hero
+>
+  <Hero />
+  <Marquee items={benefits} />
+  <CategoryTiles />
+  <FeaturedTabs />
+  <FabricStory />
+  <LabTeaser />
+  <Lookbook />
+  <ReviewsCarousel />
+</BaseLayout>

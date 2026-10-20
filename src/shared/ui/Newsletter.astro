@@ -1,0 +1,161 @@
+---
+import Icon from './Icon.astro';
+---
+
+<section class="newsletter" aria-labelledby="newsletter-title" data-newsletter>
+  <div class="newsletter__card on-dark container" data-newsletter-card>
+    <div class="newsletter__copy">
+      <p class="eyebrow newsletter__eyebrow">Newsletter</p>
+      <h2 id="newsletter-title" class="newsletter__title">
+        Primero las <em>novedades</em>, luego el resto.
+      </h2>
+      <p class="newsletter__lead">
+        Lanzamientos, reposiciones y un 10 % en tu primera compra. Un correo al mes, sin ruido.
+      </p>
+    </div>
+
+    <div class="newsletter__action">
+      <form class="newsletter__form" novalidate>
+        <label class="sr-only" for="newsletter-email">Correo electrónico</label>
+        <input
+          class="input newsletter__input"
+          id="newsletter-email"
+          name="email"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="nombre@correo.com"
+          aria-describedby="newsletter-error"
+          required
+        />
+        <button class="btn btn--light" type="submit">
+          Suscribirme <Icon name="arrow-right" />
+        </button>
+        <p class="newsletter__error" id="newsletter-error" data-newsletter-error role="alert"></p>
+      </form>
+
+      <div class="newsletter__success" data-newsletter-success tabindex="-1" hidden>
+        <svg class="newsletter__check" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <circle cx="24" cy="24" r="21" pathLength="1" class="draw-check"></circle>
+          <path d="m14 25 7 7 13-15" pathLength="1" class="draw-check"></path>
+        </svg>
+        <div>
+          <p class="newsletter__success-title">Gracias, ya estás en la lista.</p>
+          <p class="newsletter__success-text">
+            Esto es una demostración: tu correo no se guarda ni se envía a ningún sitio.
+          </p>
+          <button type="button" class="link link--static newsletter__reset" data-newsletter-reset>
+            Usar otro correo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .newsletter {
+    padding-block: var(--space-2xl) var(--space-xl);
+  }
+
+  .newsletter__card {
+    display: grid;
+    gap: var(--space-xl);
+    padding: clamp(1.75rem, 1rem + 4vw, 4.5rem);
+    border-radius: var(--radius-lg);
+    background: var(--teal);
+    color: var(--sand);
+  }
+
+  @media (min-width: 56rem) {
+    .newsletter__card {
+      grid-template-columns: 1.1fr 1fr;
+      align-items: center;
+    }
+  }
+
+  .newsletter__eyebrow {
+    color: var(--teal-soft);
+  }
+
+  .newsletter__title {
+    margin-top: var(--space-sm);
+    max-width: 16ch;
+  }
+
+  .newsletter__lead {
+    margin-top: var(--space-md);
+    max-width: 44ch;
+    color: rgb(243 237 228 / 0.88);
+  }
+
+  .newsletter__form {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  @media (min-width: 40rem) {
+    .newsletter__form {
+      grid-template-columns: 1fr auto;
+    }
+  }
+
+  .newsletter__input {
+    border-color: transparent;
+  }
+
+  .newsletter__input:hover {
+    border-color: var(--sand);
+  }
+
+  .newsletter__input[aria-invalid='true'] {
+    border-color: var(--coral);
+    animation: shake 0.5s var(--ease-out-quart);
+  }
+
+  .newsletter__error {
+    grid-column: 1 / -1;
+    min-height: 1.4em;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: #ffd2c4;
+  }
+
+  .newsletter__success {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .newsletter__success:focus-visible {
+    outline-offset: 8px;
+  }
+
+  .newsletter__check {
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    fill: none;
+    stroke: var(--coral);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .newsletter__success-title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: 1.15;
+  }
+
+  .newsletter__success-text {
+    margin-top: 0.4rem;
+    font-size: var(--text-sm);
+    color: rgb(243 237 228 / 0.85);
+  }
+
+  .newsletter__reset {
+    margin-top: var(--space-sm);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -1,0 +1,72 @@
+/* Design tokens: palette, type, spacing, layout and motion. */
+:root {
+  color-scheme: light;
+
+  /* Palette. Contrast checked against --sand and --surface:
+     --ink 15.6:1, --ink-soft 9:1, --muted 5.4:1, --coral-text 4.7:1, sand-on-teal 8.6:1 */
+  --sand: #f3ede4;
+  --sand-deep: #e9e0d2;
+  --surface: #fbf8f3;
+  --paper: #ffffff;
+  --ink: #13201f;
+  --ink-soft: #3a4947;
+  --muted: #566260;
+  --stone: #d8cfc1;
+  --stone-strong: #bfb3a1;
+  --teal: #0d4a4c;
+  --teal-deep: #093537;
+  --teal-soft: #d5e3df;
+  --coral: #e3643f;
+  --coral-text: #b8431f;
+  --scrim: rgb(19 32 31 / 0.5);
+
+  /* Typography */
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'Manrope Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --text-xs: clamp(0.72rem, 0.7rem + 0.08vw, 0.78rem);
+  --text-sm: clamp(0.84rem, 0.82rem + 0.1vw, 0.9rem);
+  --text-base: clamp(0.97rem, 0.94rem + 0.15vw, 1.05rem);
+  --text-lg: clamp(1.1rem, 1.03rem + 0.35vw, 1.3rem);
+  --text-xl: clamp(1.35rem, 1.15rem + 1vw, 1.9rem);
+  --text-2xl: clamp(1.8rem, 1.3rem + 2.4vw, 3.1rem);
+  --text-3xl: clamp(2.2rem, 1.3rem + 4.4vw, 4.8rem);
+  --text-4xl: clamp(2.7rem, 1.2rem + 7.4vw, 8.4rem);
+
+  /* Spacing */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: clamp(3.5rem, 2rem + 5vw, 7rem);
+  --space-3xl: clamp(5rem, 3rem + 8vw, 11rem);
+
+  /* Layout */
+  --container: 1440px;
+  --gutter: clamp(1rem, 0.4rem + 2.6vw, 2.5rem);
+  --bar-h: 2.25rem;
+  --header-h: 5.25rem;
+  --header-h-compact: 4rem;
+
+  --radius-sm: 4px;
+  --radius-md: 12px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-page: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: linear(
+    0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%,
+    1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%,
+    0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1.004 83.8%, 1
+  );
+  --dur-fast: 180ms;
+  --dur-base: 320ms;
+  --dur-slow: 560ms;
+  --dur-slower: 900ms;
+}

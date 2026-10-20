@@ -1,0 +1,45 @@
+---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  sizes: string;
+  widths?: number[];
+  /** Hero / LCP image: eager, high priority. Everything else is lazy. */
+  priority?: boolean;
+  class?: string;
+  /** CSS object-position for cover crops. */
+  position?: string;
+  quality?: number;
+}
+
+const {
+  src,
+  alt,
+  sizes,
+  widths = [480, 720, 960],
+  priority = false,
+  class: className,
+  position,
+  quality = 60,
+} = Astro.props;
+
+const usableWidths = widths.filter((width) => width <= src.width);
+---
+
+<Picture
+  src={src}
+  alt={alt}
+  formats={['avif', 'webp']}
+  fallbackFormat="jpg"
+  widths={usableWidths.length ? usableWidths : [src.width]}
+  sizes={sizes}
+  quality={quality}
+  loading={priority ? 'eager' : 'lazy'}
+  decoding={priority ? 'sync' : 'async'}
+  fetchpriority={priority ? 'high' : undefined}
+  class={className}
+  style={position ? `object-position: ${position}` : undefined}
+/>

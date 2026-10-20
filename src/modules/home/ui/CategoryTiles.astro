@@ -1,0 +1,173 @@
+---
+import Photo from '../../../shared/ui/Photo.astro';
+import Icon from '../../../shared/ui/Icon.astro';
+import { photos } from '../../../shared/assets/photos';
+import { formatCOP } from '../../../shared/lib/format';
+import { CATEGORY_LABELS, productCount, startingPrice } from '../../catalog/data/products';
+import type { Category } from '../../catalog/data/types';
+
+const tiles: { category: Category; photo: (typeof photos)[keyof typeof photos] }[] = [
+  { category: 'bikinis', photo: photos.bikiniFloralPalm },
+  { category: 'enterizos', photo: photos.onepieceSage },
+  { category: 'hombre', photo: photos.menPool },
+  { category: 'resort', photo: photos.resortPoolPalms },
+];
+---
+
+<section class="section tiles" id="categorias" aria-labelledby="tiles-title">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-head__title">
+        <p class="eyebrow">Categorías</p>
+        <h2 id="tiles-title">Elige tu <em>estilo</em></h2>
+      </div>
+      <a class="link arrow-link" href="/coleccion">
+        Ver toda la colección <Icon name="arrow-right" />
+      </a>
+    </div>
+
+    <ul class="tiles__grid reveal-stagger">
+      {
+        tiles.map(({ category, photo }) => {
+          const count = productCount(category);
+          return (
+            <li>
+              <a class="tile" href={`/coleccion?cat=${category}`}>
+                <span class="tile__media">
+                  <Photo
+                    class="tile__img"
+                    src={photo.src}
+                    alt={photo.alt}
+                    position={photo.position}
+                    sizes="(min-width: 64rem) 22vw, 46vw"
+                    widths={[480, 720, 960]}
+                  />
+                  <span class="tile__shade" aria-hidden="true"></span>
+                </span>
+                <span class="tile__body">
+                  <span class="tile__name">{CATEGORY_LABELS[category]}</span>
+                  <span class="tile__meta">
+                    {count} {count === 1 ? 'producto' : 'productos'} · desde {formatCOP(startingPrice(category))}
+                  </span>
+                </span>
+                <span class="tile__arrow" aria-hidden="true">
+                  <Icon name="arrow-up-right" />
+                </span>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
+
+<style is:global>
+  .tiles__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.75rem, 0.4rem + 1.6vw, 1.5rem);
+  }
+
+  @media (min-width: 64rem) {
+    .tiles__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .tile {
+    position: relative;
+    display: block;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    color: var(--sand);
+    isolation: isolate;
+  }
+
+  .tile__media {
+    display: block;
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background: var(--sand-deep);
+  }
+
+  .tile__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.6s var(--ease-out-expo);
+  }
+
+  .tile__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgb(9 30 31 / 0.72) 0%, rgb(9 30 31 / 0.1) 55%, rgb(9 30 31 / 0) 100%);
+    transition: opacity 0.8s var(--ease-out-expo);
+  }
+
+  .tile__body {
+    position: absolute;
+    inset: auto 0 0;
+    display: grid;
+    gap: 0.2rem;
+    padding: clamp(0.9rem, 0.5rem + 1.4vw, 1.6rem);
+    transition: transform 0.8s var(--ease-out-expo);
+  }
+
+  .tile__name {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .tile__meta {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    opacity: 0.92;
+  }
+
+  .tile__arrow {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--sand);
+    color: var(--ink);
+    transform: translate(0.6rem, -0.6rem) scale(0.7);
+    opacity: 0;
+    transition:
+      transform 0.7s var(--ease-out-expo),
+      opacity 0.5s var(--ease-out-expo);
+  }
+
+  @media (hover: hover) {
+    .tile:hover .tile__img {
+      transform: scale(1.07);
+    }
+
+    .tile:hover .tile__body {
+      transform: translateY(-0.3rem);
+    }
+
+    .tile:hover .tile__arrow,
+    .tile:focus-visible .tile__arrow {
+      transform: none;
+      opacity: 1;
+    }
+  }
+
+  @media (hover: none) {
+    .tile__arrow {
+      transform: none;
+      opacity: 1;
+    }
+  }
+</style>

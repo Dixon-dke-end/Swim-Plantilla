@@ -1,0 +1,241 @@
+---
+import Photo from '../../../shared/ui/Photo.astro';
+import { photos } from '../../../shared/assets/photos';
+
+const looks = [
+  { photo: photos.swimMilos, caption: 'Aguas abiertas', note: 'Enterizo Lago' },
+  { photo: photos.onepieceStripeWaves, caption: 'Rayas y oleaje', note: 'Enterizo Ola' },
+  { photo: photos.menPool, caption: 'Borde de piscina', note: 'Short Piscina' },
+  { photo: photos.onepieceSage, caption: 'Hora dorada', note: 'Enterizo Lago, Salvia' },
+  { photo: photos.bikiniRedBeach, caption: 'Coral en la orilla', note: 'Bikini Alba' },
+  { photo: photos.resortPoolPalms, caption: 'Tarde de resort', note: 'Línea Resort' },
+  { photo: photos.oceanAerial, caption: 'Marea alta', note: 'Vista aérea' },
+  { photo: photos.poolOrangeGlass, caption: 'Un trago y nada más', note: 'Enterizo Oasis' },
+].map((look, index) => ({
+  ...look,
+  number: String(index + 1).padStart(2, '0'),
+  ratio: (look.photo.src.width / look.photo.src.height).toFixed(4),
+}));
+---
+
+<section class="lookbook" aria-labelledby="lookbook-title">
+  <div class="lookbook__pin">
+    <header class="lookbook__head container">
+      <div class="lookbook__title">
+        <p class="eyebrow eyebrow--coral">Lookbook</p>
+        <h2 id="lookbook-title">Lookbook <em>Verano</em></h2>
+      </div>
+      <p class="lookbook__hint" aria-hidden="true">Sigue bajando para recorrer la historia</p>
+    </header>
+
+    <div class="lookbook__track" role="list" tabindex="0" aria-label="Fotografías del lookbook">
+      {
+        looks.map((look) => (
+          <figure class="look" role="listitem" style={`--ratio:${look.ratio}`}>
+            <div class="look__media">
+              <Photo
+                class="look__img"
+                src={look.photo.src}
+                alt={look.photo.alt}
+                position={look.photo.position}
+                sizes="(min-width: 64rem) 40vw, 72vw"
+                widths={[480, 720, 960]}
+              />
+            </div>
+            <figcaption class="look__caption">
+              <span class="look__number">{look.number}</span>
+              <span class="look__title">{look.caption}</span>
+              <span class="look__note">{look.note}</span>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <div class="lookbook__progress container" aria-hidden="true">
+      <span class="lookbook__bar"></span>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  /* Base layout: a plain scroll-snap strip. Used without scroll-driven animations and for reduced motion. */
+  .lookbook {
+    --look-h: clamp(18rem, 58vh, 38rem);
+    padding-block: var(--space-2xl);
+  }
+
+  .lookbook__pin {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-lg);
+  }
+
+  .lookbook__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  .lookbook__title {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .lookbook__hint {
+    display: none;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .lookbook__track {
+    display: flex;
+    gap: clamp(0.75rem, 0.4rem + 1.6vw, 1.75rem);
+    padding-inline: var(--gutter);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: thin;
+    padding-bottom: 0.75rem;
+  }
+
+  .look {
+    flex: none;
+    display: grid;
+    gap: 0.75rem;
+    scroll-snap-align: start;
+  }
+
+  .look__media {
+    position: relative;
+    height: var(--look-h);
+    width: calc(var(--look-h) * var(--ratio));
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--sand-deep);
+  }
+
+  .look__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.6s var(--ease-out-expo);
+  }
+
+  @media (hover: hover) {
+    .look:hover .look__img {
+      transform: scale(1.04);
+    }
+  }
+
+  .look__caption {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.75rem;
+    align-items: baseline;
+  }
+
+  .look__number {
+    grid-row: span 2;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--coral-text);
+  }
+
+  .look__title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    line-height: 1.15;
+  }
+
+  .look__note {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .lookbook__progress {
+    display: none;
+    height: 2px;
+    background: var(--stone);
+    overflow: hidden;
+  }
+
+  .lookbook__bar {
+    display: block;
+    height: 100%;
+    background: var(--teal);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+
+  /*
+   * Pinned horizontal story: the tall wrapper scrolls vertically while the stage
+   * sticks to the viewport and the track slides sideways, driven by a view timeline.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) and (min-width: 48rem) {
+      .lookbook {
+        height: 340vh;
+        padding-block: 0;
+        view-timeline: --lookbook block;
+      }
+
+      .lookbook__pin {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        height: 100svh;
+        align-content: center;
+        padding-top: var(--header-h-compact);
+        container-type: inline-size;
+        overflow: hidden;
+      }
+
+      .lookbook__hint {
+        display: block;
+      }
+
+      .lookbook__track {
+        width: max-content;
+        overflow: visible;
+        scroll-snap-type: none;
+        padding-bottom: 0;
+        animation-name: lookbook-slide;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: --lookbook;
+        animation-range: contain 0% contain 100%;
+        will-change: transform;
+      }
+
+      .lookbook__progress {
+        display: block;
+      }
+
+      .lookbook__bar {
+        animation-name: lookbook-progress;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: --lookbook;
+        animation-range: contain 0% contain 100%;
+      }
+    }
+  }
+
+  @keyframes lookbook-slide {
+    to {
+      transform: translateX(calc(-100% + 100cqw));
+    }
+  }
+
+  @keyframes lookbook-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+</style>
